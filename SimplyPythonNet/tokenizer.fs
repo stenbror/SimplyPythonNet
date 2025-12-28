@@ -42,9 +42,68 @@ type Token =
     |   Case of uint * uint
     |   Type of uint * uint
     |   Default of uint * uint (* '_' *)
+    (* Operators *)
+    |   PlusAssign of uint * uint
+    |   MinusAssign of uint * uint
+    |   MulAssign of uint * uint
+    |   PowerAssign of uint * uint
+    |   SlashAssign of uint * uint
+    |   DoubleSlashAssign of uint * uint
+    |   ModuloAssign of uint * uint
+    |   BitwiseAndAssign of uint * uint
+    |   BitwiseOrAssign of uint * uint
+    |   BitwiseXorAssign of uint * uint
+    |   BitwiseShiftLeftAssign of uint * uint
+    |   BitwiseShiftRightAssign of uint * uint
+    |   MatricesAssign of uint * uint
+    |   ColonAssign of uint * uint
+    |   BitwiseAnd of uint * uint
+    |   BitwiseOr of uint * uint
+    |   BitwiseXor of uint * uint
+    |   BitwiseInvert of uint * uint
+    |   BitwiseShiftLeft of uint * uint
+    |   BitwiseShiftRight of uint * uint
+    |   LessEqual of uint * uint
+    |   GreaterEqual of uint * uint
+    |   Less of uint * uint
+    |   Greater of uint * uint
+    |   Equal of uint * uint
+    |   NotEqual of uint * uint
+    |   LeftParen of uint * uint
+    |   RightParen of uint * uint
+    |   LeftBracket of uint * uint
+    |   RightBracket of uint * uint
+    |   LeftCurly of uint * uint
+    |   RightCurly of uint * uint
+    |   Comma of uint * uint
+    |   Colon of uint * uint
+    |   BitwiseNot of uint * uint
+    |   SemiColon of uint * uint
+    |   Assign of uint * uint
+    |   Arrow of uint * uint
+    |   Plus of uint * uint
+    |   Minus of uint * uint
+    |   Power of uint * uint
+    |   Mul of uint * uint
+    |   DoubleSlash of uint * uint
+    |   Slash of uint * uint
+    |   Modulo of uint * uint
+    |   Period of uint * uint
+    |   Matrices of uint * uint
+    |   Ellipsis of uint * uint
     
     
-
+(*
+    
+assignment_operator:   "+=" | "-=" | "*=" | "**=" | "/="  | "//=" | "%=" |
+                       "&=" | "|=" | "^=" | "<<=" | ">>=" | "@="  | ":="
+bitwise_operator:      "&"  | "|"  | "^"  | "~"   | "<<"  | ">>"
+comparison_operator:   "<=" | ">=" | "<"  | ">"   | "=="  | "!="
+enclosing_delimiter:   "("  | ")"  | "["  | "]"   | "{"   | "}"
+other_delimiter:       ","  | ":"  | "!"  | ";"   | "="   | "->"
+arithmetic_operator:   "+"  | "-"  | "**" | "*"   | "//"  | "/"   | "%"
+other_op:              "."  | "@"
+*)
     
 
 let OneCharToken c =
