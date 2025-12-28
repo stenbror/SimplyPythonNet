@@ -117,19 +117,7 @@ let OneCharToken c =
     |   '/' -> Some(Token.Slash)
     |   '%' -> Some(Token.Modulo)
     |   _ -> Option.None
-    
-(*
-    
-assignment_operator:   "+=" | "-=" | "*=" | "**=" | "/="  | "//=" | "%=" |
-                       "&=" | "|=" | "^=" | "<<=" | ">>=" | "@="  | ":="
-bitwise_operator:      "&"  | "|"  | "^"  | "~"   | "<<"  | ">>"
-comparison_operator:   "<=" | ">=" | "<"  | ">"   | "=="  | "!="
-enclosing_delimiter:   "("  | ")"  | "["  | "]"   | "{"   | "}"
-other_delimiter:       ","  | ":"  | "!"  | ";"   | "="   | "->"
-arithmetic_operator:   "+"  | "-"  | "**" | "*"   | "//"  | "/"   | "%"
-other_op:              "."  | "@"
-*)
-    
+        
 let TwoCharToken c1 c2 =
      match c1 c2 with
      | '+', '=' -> Some(Token.PlusAssign)
@@ -155,8 +143,12 @@ let TwoCharToken c1 c2 =
      
 let ThreeCharToken c1 c2 c3=
      match c1 c2 c3 with
-     | '<', '<', '=' -> Some(Token.Empty)
-     |   _ -> Option.None
+     | '<', '<', '=' -> Some(Token.BitwiseShiftLeftAssign)
+     | '>', '>', '=' -> Some(Token.BitwiseShiftRightAssign)
+     | '*', '*', '=' -> Some(Token.PowerAssign)
+     | '/', '/', '=' -> Some(Token.DoubleSlashAssign)
+     | '.', '.', '.' -> Some(Token.Ellipsis)
+     |  _ -> Option.None
      
 let ReservedKeyword word =
     match word with
