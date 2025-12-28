@@ -194,3 +194,9 @@ arithmetic_operator:   "+"  | "-"  | "**" | "*"   | "//"  | "/"   | "%"
 other_op:              "."  | "@"
 
 *)
+
+[<Fact>]
+let ``Double character operator: +=`` () = Assert.Equivalent(Some(Token.PlusAssign), TwoCharToken('+', '='))
+
+[<Fact>]
+let ``Double character operator: -=`` () = Assert.Equivalent(Some(Token.MinusAssign), TwoCharToken('-', '='))

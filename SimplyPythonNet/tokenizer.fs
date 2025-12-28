@@ -91,6 +91,8 @@ type Token =
     |   Period of uint * uint
     |   Matrices of uint * uint
     |   Ellipsis of uint * uint
+    (* Literals *)
+    |   Name of uint * uint * string
     
 let OneCharToken c =
     match c with
@@ -120,8 +122,8 @@ let OneCharToken c =
     |   '.' -> Some(Token.Period)
     |   _ -> Option.None
         
-let TwoCharToken c1 c2 =
-     match c1 c2 with
+let TwoCharToken (c1 : char, c2 : char) =
+     match c1, c2 with
      | '+', '=' -> Some(Token.PlusAssign)
      | '-', '=' -> Some(Token.MinusAssign)
      | '*', '=' -> Some(Token.MulAssign)
@@ -154,38 +156,49 @@ let ThreeCharToken c1 c2 c3=
      
 let ReservedKeyword word =
     match word with
-    |   "False" -> Some(Token.False)
-    |   "None" -> Some(Token.None)
-    |   "True" -> Some(Token.True)
-    |   "and" -> Some(Token.And)
-    |   "as" -> Some(Token.As)
-    |   "assert" -> Some(Token.Assert)
-    |   "async" -> Some(Token.Async)
-    |   "await" -> Some(Token.Await)
-    |   "break" -> Some(Token.Break)
-    |   "class" -> Some(Token.Class)
-    |   "continue" -> Some(Token.Continue)
-    |   "def" -> Some(Token.Def)
-    |   "del" -> Some(Token.Del)
-    |   "elif" -> Some(Token.Elif)
-    |   "else" -> Some(Token.Else)
-    |   "except" -> Some(Token.Except)
-    |   "finally" -> Some(Token.Finally)
-    |   "for" -> Some(Token.For)
-    |   "from" -> Some(Token.From)
-    |   "global" -> Some(Token.Global)
-    |   "if" -> Some(Token.If)
-    |   "in" -> Some(Token.In)
-    |   "is" -> Some(Token.Is)
-    |   "lambda" -> Some(Token.Lambda)
-    |   "nonlocal" -> Some(Token.Nonlocal)
-    |   "not" -> Some(Token.Not)
-    |   "or" -> Some(Token.Or)
-    |   "pass" -> Some(Token.Pass)
-    |   "raise" -> Some(Token.Raise)
-    |   "return" -> Some(Token.Return)
-    |   "try" -> Some(Token.Try)
-    |   "while" -> Some(Token.While)
-    |   "with" -> Some(Token.With)
-    |   "yield" -> Some(Token.Yield)
+    |   "False"     -> Some(Token.False)
+    |   "None"      -> Some(Token.None)
+    |   "True"      -> Some(Token.True)
+    |   "and"       -> Some(Token.And)
+    |   "as"        -> Some(Token.As)
+    |   "assert"    -> Some(Token.Assert)
+    |   "async"     -> Some(Token.Async)
+    |   "await"     -> Some(Token.Await)
+    |   "break"     -> Some(Token.Break)
+    |   "class"     -> Some(Token.Class)
+    |   "continue"  -> Some(Token.Continue)
+    |   "def"       -> Some(Token.Def)
+    |   "del"       -> Some(Token.Del)
+    |   "elif"      -> Some(Token.Elif)
+    |   "else"      -> Some(Token.Else)
+    |   "except"    -> Some(Token.Except)
+    |   "finally"   -> Some(Token.Finally)
+    |   "for"       -> Some(Token.For)
+    |   "from"      -> Some(Token.From)
+    |   "global"    -> Some(Token.Global)
+    |   "if"        -> Some(Token.If)
+    |   "in"        -> Some(Token.In)
+    |   "is"        -> Some(Token.Is)
+    |   "lambda"    -> Some(Token.Lambda)
+    |   "nonlocal"  -> Some(Token.Nonlocal)
+    |   "not"       -> Some(Token.Not)
+    |   "or"        -> Some(Token.Or)
+    |   "pass"      -> Some(Token.Pass)
+    |   "raise"     -> Some(Token.Raise)
+    |   "return"    -> Some(Token.Return)
+    |   "try"       -> Some(Token.Try)
+    |   "while"     -> Some(Token.While)
+    |   "with"      -> Some(Token.With)
+    |   "yield"     -> Some(Token.Yield)
+    |   _           -> Option.None
+    
+let SoftKeyword (symbol : Token) : Option<Token> =
+    match symbol with
+    |   Token.Name(s, e, t) ->
+            match t with
+            |   "match" -> Some(Token.Match(s, e))
+            |   "case"  -> Some(Token.Case(s, e))
+            |   "type"  -> Some(Token.Type(s, e))
+            |   "_"     -> Some(Token.Default(s, e))
+            |   _       -> Option.None
     |   _ -> Option.None
