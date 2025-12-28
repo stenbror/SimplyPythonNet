@@ -118,9 +118,39 @@ let OneCharToken c =
     |   '%' -> Some(Token.Modulo)
     |   _ -> Option.None
     
+(*
+    
+assignment_operator:   "+=" | "-=" | "*=" | "**=" | "/="  | "//=" | "%=" |
+                       "&=" | "|=" | "^=" | "<<=" | ">>=" | "@="  | ":="
+bitwise_operator:      "&"  | "|"  | "^"  | "~"   | "<<"  | ">>"
+comparison_operator:   "<=" | ">=" | "<"  | ">"   | "=="  | "!="
+enclosing_delimiter:   "("  | ")"  | "["  | "]"   | "{"   | "}"
+other_delimiter:       ","  | ":"  | "!"  | ";"   | "="   | "->"
+arithmetic_operator:   "+"  | "-"  | "**" | "*"   | "//"  | "/"   | "%"
+other_op:              "."  | "@"
+*)
+    
 let TwoCharToken c1 c2 =
      match c1 c2 with
-     | '!', '=' -> Some(Token.Empty)
+     | '+', '=' -> Some(Token.PlusAssign)
+     | '-', '=' -> Some(Token.MinusAssign)
+     | '*', '=' -> Some(Token.MulAssign)
+     | '/', '=' -> Some(Token.SlashAssign)
+     | '%', '=' -> Some(Token.ModuloAssign)
+     | '&', '=' -> Some(Token.BitwiseAndAssign)
+     | '|', '=' -> Some(Token.BitwiseOrAssign)
+     | '^', '=' -> Some(Token.BitwiseXorAssign)
+     | '@', '=' -> Some(Token.MatricesAssign)
+     | ':', '=' -> Some(Token.ColonAssign)
+     | '<', '<' -> Some(Token.BitwiseShiftLeft)
+     | '>', '>' -> Some(Token.BitwiseShiftRight)
+     | '<', '=' -> Some(Token.LessEqual)
+     | '>', '=' -> Some(Token.GreaterEqual)
+     | '=', '=' -> Some(Token.Equal)
+     | '!', '=' -> Some(Token.NotEqual)
+     | '-', '>' -> Some(Token.Arrow)
+     | '/', '/' -> Some(Token.DoubleSlash)
+     | '*', '*' -> Some(Token.Power)
      |   _ -> Option.None
      
 let ThreeCharToken c1 c2 c3=
