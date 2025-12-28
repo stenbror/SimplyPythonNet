@@ -92,23 +92,30 @@ type Token =
     |   Matrices of uint * uint
     |   Ellipsis of uint * uint
     
-    
-(*
-    
-assignment_operator:   "+=" | "-=" | "*=" | "**=" | "/="  | "//=" | "%=" |
-                       "&=" | "|=" | "^=" | "<<=" | ">>=" | "@="  | ":="
-bitwise_operator:      "&"  | "|"  | "^"  | "~"   | "<<"  | ">>"
-comparison_operator:   "<=" | ">=" | "<"  | ">"   | "=="  | "!="
-enclosing_delimiter:   "("  | ")"  | "["  | "]"   | "{"   | "}"
-other_delimiter:       ","  | ":"  | "!"  | ";"   | "="   | "->"
-arithmetic_operator:   "+"  | "-"  | "**" | "*"   | "//"  | "/"   | "%"
-other_op:              "."  | "@"
-*)
-    
-
 let OneCharToken c =
     match c with
-    |   '!' -> Some(Token.Empty)
+    |   '&' -> Some(Token.BitwiseAnd)
+    |   '|' -> Some(Token.BitwiseOr)
+    |   '^' -> Some(Token.BitwiseXor)
+    |   '~' -> Some(Token.BitwiseInvert)
+    |   '<' -> Some(Token.Less)
+    |   '>' -> Some(Token.Greater)
+    |   '(' -> Some(Token.LeftParen)
+    |   ')' -> Some(Token.RightParen)
+    |   '[' -> Some(Token.LeftBracket)
+    |   ']' -> Some(Token.RightParen)
+    |   '{' -> Some(Token.LeftCurly)
+    |   '}' -> Some(Token.RightCurly)
+    |   ',' -> Some(Token.Comma)
+    |   ':' -> Some(Token.Colon)
+    |   '!' -> Some(Token.BitwiseNot)
+    |   ';' -> Some(Token.SemiColon)
+    |   '=' -> Some(Token.Assign)
+    |   '+' -> Some(Token.Plus)
+    |   '-' -> Some(Token.Minus)
+    |   '*' -> Some(Token.Mul)
+    |   '/' -> Some(Token.Slash)
+    |   '%' -> Some(Token.Modulo)
     |   _ -> Option.None
     
 let TwoCharToken c1 c2 =
