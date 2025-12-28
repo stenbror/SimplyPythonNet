@@ -200,3 +200,33 @@ let ``Double character operator: +=`` () = Assert.Equivalent(Some(Token.PlusAssi
 
 [<Fact>]
 let ``Double character operator: -=`` () = Assert.Equivalent(Some(Token.MinusAssign), TwoCharToken('-', '='))
+
+[<Fact>]
+let ``Double character operator: *=`` () = Assert.Equivalent(Some(Token.MulAssign), TwoCharToken('*', '='))
+
+[<Fact>]
+let ``Double character operator: /=`` () = Assert.Equivalent(Some(Token.SlashAssign), TwoCharToken('/', '='))
+
+[<Fact>]
+let ``Double character operator: %=`` () = Assert.Equivalent(Some(Token.MinusAssign), TwoCharToken('%', '='))
+
+[<Fact>]
+let ``Double character operator: &=`` () = Assert.Equivalent(Some(Token.BitwiseAndAssign), TwoCharToken('&', '='))
+
+[<Fact>]
+let ``Double character operator: |=`` () = Assert.Equivalent(Some(Token.BitwiseOrAssign), TwoCharToken('|', '='))
+
+[<Fact>]
+let ``Double character operator: ^=`` () = Assert.Equivalent(Some(Token.BitwiseXorAssign), TwoCharToken('^', '='))
+
+[<Fact>]
+let ``Double character operator: Matrices =`` () = Assert.Equivalent(Some(Token.MatricesAssign), TwoCharToken('@', '='))
+
+[<Fact>]
+let ``Double character operator: :=`` () = Assert.Equivalent(Some(Token.ColonAssign), TwoCharToken(':', '='))
+
+[<Fact>]
+let ``Double character operator: <<`` () = Assert.Equivalent(Some(Token.BitwiseShiftLeft), TwoCharToken('<', '<'))
+
+[<Fact>]
+let ``Double character operator: >>`` () = Assert.Equivalent(Some(Token.BitwiseShiftRight), TwoCharToken('>', '>'))
