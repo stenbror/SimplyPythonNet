@@ -237,3 +237,18 @@ let ``Double character operator: **`` () = Assert.Equivalent(Some(Token.Power), 
 
 [<Fact>]
 let ``Double character operator: //`` () = Assert.Equivalent(Some(Token.DoubleSlash), TwoCharToken('/', '/'))
+
+[<Fact>]
+let ``Triple character operator: <<=`` () = Assert.Equivalent(Some(Token.BitwiseShiftLeftAssign), ThreeCharToken('<', '<', '='))
+
+[<Fact>]
+let ``Triple character operator: >>=`` () = Assert.Equivalent(Some(Token.BitwiseShiftRightAssign), ThreeCharToken('>', '>', '='))
+
+[<Fact>]
+let ``Triple character operator: **=`` () = Assert.Equivalent(Some(Token.PowerAssign), ThreeCharToken('*', '*', '='))
+
+[<Fact>]
+let ``Triple character operator: //=`` () = Assert.Equivalent(Some(Token.DoubleSlashAssign), ThreeCharToken('/', '/', '='))
+
+[<Fact>]
+let ``Triple character operator: ...`` () = Assert.Equivalent(Some(Token.Ellipsis), ThreeCharToken('.', '.', '.'))

@@ -145,8 +145,8 @@ let TwoCharToken (c1 : char, c2 : char) =
      | '*', '*' -> Some(Token.Power)
      |   _ -> Option.None
      
-let ThreeCharToken c1 c2 c3=
-     match c1 c2 c3 with
+let ThreeCharToken (c1: char, c2: char, c3: char)=
+     match c1, c2, c3 with
      | '<', '<', '=' -> Some(Token.BitwiseShiftLeftAssign)
      | '>', '>', '=' -> Some(Token.BitwiseShiftRightAssign)
      | '*', '*', '=' -> Some(Token.PowerAssign)
