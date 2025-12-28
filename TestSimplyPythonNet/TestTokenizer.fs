@@ -181,20 +181,6 @@ let ``Single character operator: .`` () = Assert.Equivalent(Some(Token.Period), 
 [<Fact>]
 let ``Single character operator: Matrices`` () = Assert.Equivalent(Some(Token.Matrices), OneCharToken '@')
 
-
-
-(*
-assignment_operator:   "+=" | "-=" | "*=" | "**=" | "/="  | "//=" | "%=" |
-                       "&=" | "|=" | "^=" | "<<=" | ">>=" | "@="  | ":="
-bitwise_operator:      "&"  | "|"  | "^"  | "~"   | "<<"  | ">>"
-comparison_operator:   "<=" | ">=" | "<"  | ">"   | "=="  | "!="
-enclosing_delimiter:   "("  | ")"  | "["  | "]"   | "{"   | "}"
-other_delimiter:       ","  | ":"  | "!"  | ";"   | "="   | "->"
-arithmetic_operator:   "+"  | "-"  | "**" | "*"   | "//"  | "/"   | "%"
-other_op:              "."  | "@"
-
-*)
-
 [<Fact>]
 let ``Double character operator: +=`` () = Assert.Equivalent(Some(Token.PlusAssign), TwoCharToken('+', '='))
 
@@ -230,3 +216,24 @@ let ``Double character operator: <<`` () = Assert.Equivalent(Some(Token.BitwiseS
 
 [<Fact>]
 let ``Double character operator: >>`` () = Assert.Equivalent(Some(Token.BitwiseShiftRight), TwoCharToken('>', '>'))
+
+[<Fact>]
+let ``Double character operator: <=`` () = Assert.Equivalent(Some(Token.LessEqual), TwoCharToken('<', '='))
+
+[<Fact>]
+let ``Double character operator: >=`` () = Assert.Equivalent(Some(Token.GreaterEqual), TwoCharToken('>', '='))
+
+[<Fact>]
+let ``Double character operator: ==`` () = Assert.Equivalent(Some(Token.Equal), TwoCharToken('=', '='))
+
+[<Fact>]
+let ``Double character operator: !=`` () = Assert.Equivalent(Some(Token.NotEqual), TwoCharToken('!', '='))
+
+[<Fact>]
+let ``Double character operator: ->`` () = Assert.Equivalent(Some(Token.Arrow), TwoCharToken('-', '>'))
+
+[<Fact>]
+let ``Double character operator: **`` () = Assert.Equivalent(Some(Token.Power), TwoCharToken('*', '*'))
+
+[<Fact>]
+let ``Double character operator: //`` () = Assert.Equivalent(Some(Token.DoubleSlash), TwoCharToken('/', '/'))
