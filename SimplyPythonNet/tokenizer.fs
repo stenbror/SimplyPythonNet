@@ -116,6 +116,8 @@ let OneCharToken c =
     |   '*' -> Some(Token.Mul)
     |   '/' -> Some(Token.Slash)
     |   '%' -> Some(Token.Modulo)
+    |   '@' -> Some(Token.Matrices)
+    |   '.' -> Some(Token.Period)
     |   _ -> Option.None
         
 let TwoCharToken c1 c2 =

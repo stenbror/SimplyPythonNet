@@ -108,3 +108,89 @@ let ``Reserved keyword: yield`` () = Assert.Equivalent(Some(Token.Yield), Reserv
 
 [<Fact>]
 let ``Reserved keyword: Not Found`` () = Assert.Equal(Option.None, ReservedKeyword "match")
+
+[<Fact>]
+let ``Single character operator: &`` () = Assert.Equivalent(Some(Token.BitwiseAnd), OneCharToken '&')
+
+[<Fact>]
+let ``Single character operator: |`` () = Assert.Equivalent(Some(Token.BitwiseOr), OneCharToken '|')
+
+[<Fact>]
+let ``Single character operator: ^`` () = Assert.Equivalent(Some(Token.BitwiseXor), OneCharToken '^')
+
+[<Fact>]
+let ``Single character operator: ~`` () = Assert.Equivalent(Some(Token.BitwiseInvert), OneCharToken '~')
+
+[<Fact>]
+let ``Single character operator: <`` () = Assert.Equivalent(Some(Token.Less), OneCharToken '<')
+
+[<Fact>]
+let ``Single character operator: >`` () = Assert.Equivalent(Some(Token.Greater), OneCharToken '>')
+
+[<Fact>]
+let ``Single character operator: (`` () = Assert.Equivalent(Some(Token.LeftParen), OneCharToken '(')
+
+[<Fact>]
+let ``Single character operator: )`` () = Assert.Equivalent(Some(Token.RightParen), OneCharToken ')')
+
+[<Fact>]
+let ``Single character operator: [`` () = Assert.Equivalent(Some(Token.LeftBracket), OneCharToken '[')
+
+[<Fact>]
+let ``Single character operator: ]`` () = Assert.Equivalent(Some(Token.RightBracket), OneCharToken ']')
+
+[<Fact>]
+let ``Single character operator: {`` () = Assert.Equivalent(Some(Token.LeftCurly), OneCharToken '{')
+
+[<Fact>]
+let ``Single character operator: }`` () = Assert.Equivalent(Some(Token.RightCurly), OneCharToken '}')
+
+[<Fact>]
+let ``Single character operator: ,`` () = Assert.Equivalent(Some(Token.Comma), OneCharToken ',')
+
+[<Fact>]
+let ``Single character operator: :`` () = Assert.Equivalent(Some(Token.Colon), OneCharToken ':')
+
+[<Fact>]
+let ``Single character operator: !`` () = Assert.Equivalent(Some(Token.BitwiseNot), OneCharToken '!')
+
+[<Fact>]
+let ``Single character operator: ;`` () = Assert.Equivalent(Some(Token.SemiColon), OneCharToken ';')
+
+[<Fact>]
+let ``Single character operator: =`` () = Assert.Equivalent(Some(Token.Assign), OneCharToken '=')
+
+[<Fact>]
+let ``Single character operator: +`` () = Assert.Equivalent(Some(Token.Plus), OneCharToken '+')
+
+[<Fact>]
+let ``Single character operator: -`` () = Assert.Equivalent(Some(Token.Minus), OneCharToken '-')
+
+[<Fact>]
+let ``Single character operator: *`` () = Assert.Equivalent(Some(Token.Mul), OneCharToken '*')
+
+[<Fact>]
+let ``Single character operator: /`` () = Assert.Equivalent(Some(Token.Slash), OneCharToken '/')
+
+[<Fact>]
+let ``Single character operator: %`` () = Assert.Equivalent(Some(Token.Modulo), OneCharToken '%')
+
+[<Fact>]
+let ``Single character operator: .`` () = Assert.Equivalent(Some(Token.Period), OneCharToken '.')
+
+[<Fact>]
+let ``Single character operator: Matrices`` () = Assert.Equivalent(Some(Token.Matrices), OneCharToken '@')
+
+
+
+(*
+assignment_operator:   "+=" | "-=" | "*=" | "**=" | "/="  | "//=" | "%=" |
+                       "&=" | "|=" | "^=" | "<<=" | ">>=" | "@="  | ":="
+bitwise_operator:      "&"  | "|"  | "^"  | "~"   | "<<"  | ">>"
+comparison_operator:   "<=" | ">=" | "<"  | ">"   | "=="  | "!="
+enclosing_delimiter:   "("  | ")"  | "["  | "]"   | "{"   | "}"
+other_delimiter:       ","  | ":"  | "!"  | ";"   | "="   | "->"
+arithmetic_operator:   "+"  | "-"  | "**" | "*"   | "//"  | "/"   | "%"
+other_op:              "."  | "@"
+
+*)
