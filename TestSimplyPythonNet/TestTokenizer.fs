@@ -252,3 +252,15 @@ let ``Triple character operator: //=`` () = Assert.Equivalent(Some(Token.DoubleS
 
 [<Fact>]
 let ``Triple character operator: ...`` () = Assert.Equivalent(Some(Token.Ellipsis), ThreeCharToken('.', '.', '.'))
+
+[<Fact>]
+let ``Soft keyword: match`` () = Assert.Equivalent(Some(Token.Match(1u,1u)), SoftKeyword (Token.Name( 1u, 1u, "match")))
+
+[<Fact>]
+let ``Soft keyword: case`` () = Assert.Equivalent(Some(Token.Case(1u,1u)), SoftKeyword (Token.Name( 1u, 1u, "case")))
+
+[<Fact>]
+let ``Soft keyword: _`` () = Assert.Equivalent(Some(Token.Default(1u,1u)), SoftKeyword (Token.Name( 1u, 1u, "_")))
+
+[<Fact>]
+let ``Soft keyword: type`` () = Assert.Equivalent(Some(Token.Type(1u,1u)), SoftKeyword (Token.Name( 1u, 1u, "type")))
