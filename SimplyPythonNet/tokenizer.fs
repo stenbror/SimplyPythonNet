@@ -279,8 +279,6 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
         (Option.None, Option.None, res)
     | 'b' | 'B' ->
         (Option.None, Option.None, res)
-    | '_' ->
-        (Option.None, Option.None, res)
     | '.' ->
         (Option.None, Option.None, res)
     | ''' | '"' ->

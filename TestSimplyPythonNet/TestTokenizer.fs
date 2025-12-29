@@ -328,3 +328,32 @@ let ``Operator: None`` () =
     let res, rest = Operators(" 4" |> Seq.toList)
     Assert.Equivalent(Option.None, res)
     Assert.Equal<char list>((" 4" |> Seq.toList), rest)
+    
+    
+[<Fact>]
+let ``NextSymbol: None`` () = 
+    let symbol, text, rest = NextSymbol ("None" |> Seq.toList)
+    Assert.Equivalent(Some(Token.None), symbol)
+    Assert.Equivalent(Option.None, text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: __name__`` () = 
+    let symbol, text, rest = NextSymbol ("init__" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Name), symbol)
+    Assert.Equivalent(Some("init__"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: __name1__`` () = 
+    let symbol, text, rest = NextSymbol ("__name1__" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Name), symbol)
+    Assert.Equivalent(Some("__name1__"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: <<=`` () = 
+    let symbol, text, rest = NextSymbol ("<<=" |> Seq.toList)
+    Assert.Equivalent(Some(Token.None), symbol)
+    Assert.Equivalent(Option.None, text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
