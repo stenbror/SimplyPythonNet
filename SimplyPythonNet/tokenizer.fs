@@ -241,3 +241,19 @@ let AdvanceCharacters (chars : char list, steps: uint) : char list =
                | [] -> res
                
     res
+    
+let Operators(chars: char list) : (uint * uint -> Token) option * char list =
+    match ThreeCharToken(PeekNextThreeChars(chars)) with
+    | Some(token) ->
+        (Some(token), AdvanceCharacters(chars, 3u))
+    | Option.None ->
+        match TwoCharToken(PeekNextTwoChars(chars)) with
+        | Some(token) ->
+            (Some(token), AdvanceCharacters(chars, 2u))
+        | Option.None ->
+            let res = OneCharToken(PeekNextChar(chars))
+            match res with
+            | Some(token) ->
+                (Some(token), AdvanceCharacters(chars, 1u))
+            | Option.None ->
+                (Option.None, chars)
