@@ -1,5 +1,7 @@
 ﻿module SimplyPythonNet.tokenizer
 
+open System
+
 type Token =
     |   Empty
     (* Reserved keywords *)
@@ -92,7 +94,12 @@ type Token =
     |   Matrices of uint * uint
     |   Ellipsis of uint * uint
     (* Literals *)
-    |   Name of uint * uint * string
+    |   Name of uint * uint
+    |   NameLiteral of uint * uint * string
+    |   Number of uint * uint
+    |   NumberLiteral of uint * uint * string
+    |   String of uint * uint
+    |   StringLiteral of uint * uint * string
     
 let OneCharToken c =
     match c with
@@ -194,7 +201,7 @@ let ReservedKeyword word =
     
 let SoftKeyword (symbol : Token) : Option<Token> =
     match symbol with
-    |   Token.Name(s, e, t) ->
+    |   Token.NameLiteral(s, e, t) ->
             match t with
             |   "match" -> Some(Token.Match(s, e))
             |   "case"  -> Some(Token.Case(s, e))
@@ -257,3 +264,41 @@ let Operators(chars: char list) : (uint * uint -> Token) option * char list =
                 (Some(token), AdvanceCharacters(chars, 1u))
             | Option.None ->
                 (Option.None, chars)
+
+let NextSymbol (chars : char list) : (uint * uint -> Token) option * string option * char list =
+    let mutable res = chars
+    match PeekNextChar res with
+    | '\u0000' -> (Option.None, Option.None, res)
+    | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> (* Handle all Numbers *)
+        (Option.None, Option.None, res)
+    | 'u' | 'U' ->
+        (Option.None, Option.None, res)
+    | 'r' | 'R' ->
+        (Option.None, Option.None, res)
+    | 'f' | 'F' ->
+        (Option.None, Option.None, res)
+    | 'b' | 'B' ->
+        (Option.None, Option.None, res)
+    | '_' ->
+        (Option.None, Option.None, res)
+    | '.' ->
+        (Option.None, Option.None, res)
+    | ''' | '"' ->
+        (Option.None, Option.None, res)
+    | _ ->
+        match Operators(res) with (* Check for all valid Operators *)
+        | Some(token), rest2 ->
+            (Some(token), Option.None, rest2)
+        | Option.None, _ ->
+            if Char.IsLetter(PeekNextChar res) || PeekNextChar(res) = '_' then (* Handle all Names or Reserved Keywords *)
+                let mutable text = ""
+                while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
+                    text <- text + string(PeekNextChar res)
+                    res <- AdvanceCharacters(res, 1u)
+                match ReservedKeyword(text) with
+                | Some(token) ->
+                    (Some(token), Option.None, res)
+                | Option.None -> 
+                    (Some(Token.Name), Some(text), res)
+            else (Option.None, Option.None, res)
+    
