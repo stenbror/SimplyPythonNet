@@ -292,3 +292,15 @@ let ``PeekNextChar: One`` () = Assert.Equal('<', PeekNextChar ("<" |> Seq.toList
 
 [<Fact>]
 let ``PeekNextChar: Zero`` () = Assert.Equal('\u0000', PeekNextChar ("" |> Seq.toList))
+
+[<Fact>]
+let ``AdvanceCharacters: 3`` () = Assert.Equal<char list>(("d" |> Seq.toList), AdvanceCharacters (("abcd" |> Seq.toList), 3u))
+
+[<Fact>]
+let ``AdvanceCharacters: 2`` () = Assert.Equal<char list>(("c" |> Seq.toList), AdvanceCharacters (("abc" |> Seq.toList), 2u))
+
+[<Fact>]
+let ``AdvanceCharacters: 1`` () = Assert.Equal<char list>(("b" |> Seq.toList), AdvanceCharacters (("ab" |> Seq.toList), 1u))
+
+[<Fact>]
+let ``AdvanceCharacters: 0`` () = Assert.Equal<char list>(("abc" |> Seq.toList), AdvanceCharacters (("abc" |> Seq.toList), 0u))

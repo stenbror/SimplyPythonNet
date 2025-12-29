@@ -232,3 +232,12 @@ let PeekNextChar (chars : char list) : char =
                  | [] -> '\u0000', chars
     
     one
+    
+let AdvanceCharacters (chars : char list, steps: uint) : char list =
+    let mutable res : char list = chars
+    for _ in 1u .. steps do
+        res <- match res with
+               | _ :: tail -> tail
+               | [] -> res
+               
+    res
