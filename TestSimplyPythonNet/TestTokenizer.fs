@@ -274,3 +274,21 @@ let ``PeekNextThreeChars: Double`` () = Assert.Equal(('*', '*', '\u0000'), PeekN
 
 [<Fact>]
 let ``PeekNextThreeChars: Single`` () = Assert.Equal(('*', '\u0000', '\u0000'), PeekNextThreeChars ("*" |> Seq.toList))
+
+[<Fact>]
+let ``PeekNextThreeChars: Zero`` () = Assert.Equal(('\u0000', '\u0000', '\u0000'), PeekNextThreeChars ("" |> Seq.toList))
+
+[<Fact>]
+let ``PeekNextTwoChars: Two`` () = Assert.Equal(('<', '<'), PeekNextTwoChars ("<<" |> Seq.toList))
+
+[<Fact>]
+let ``PeekNextTwoChars: One`` () = Assert.Equal(('<', '\u0000'), PeekNextTwoChars ("<" |> Seq.toList))
+
+[<Fact>]
+let ``PeekNextTwoChars: Zero`` () = Assert.Equal(('\u0000', '\u0000'), PeekNextTwoChars ("" |> Seq.toList))
+
+[<Fact>]
+let ``PeekNextChar: One`` () = Assert.Equal('<', PeekNextChar ("<" |> Seq.toList))
+
+[<Fact>]
+let ``PeekNextChar: Zero`` () = Assert.Equal('\u0000', PeekNextChar ("" |> Seq.toList))

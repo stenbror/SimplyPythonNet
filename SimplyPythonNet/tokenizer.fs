@@ -215,3 +215,20 @@ let PeekNextThreeChars (chars : char list) : (char * char * char) =
                      | [] -> '\u0000', rest2
                                 
     (one, two, three)
+
+let PeekNextTwoChars (chars : char list) : (char * char) =
+    let one, rest1 = match chars with
+                     | head :: rest -> head, rest
+                     | [] -> '\u0000', chars
+    let two, _ = match rest1 with
+                 | head :: rest -> head, rest
+                 | [] -> '\u0000', rest1
+                              
+    (one, two)
+    
+let PeekNextChar (chars : char list) : char =
+    let one, _ = match chars with
+                 | head :: rest -> head, rest
+                 | [] -> '\u0000', chars
+    
+    one
