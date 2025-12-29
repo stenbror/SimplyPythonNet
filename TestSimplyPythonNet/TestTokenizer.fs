@@ -304,3 +304,27 @@ let ``AdvanceCharacters: 1`` () = Assert.Equal<char list>(("b" |> Seq.toList), A
 
 [<Fact>]
 let ``AdvanceCharacters: 0`` () = Assert.Equal<char list>(("abc" |> Seq.toList), AdvanceCharacters (("abc" |> Seq.toList), 0u))
+
+[<Fact>]
+let ``Operator: **=`` () = 
+    let res, rest = Operators("**= 4" |> Seq.toList)
+    Assert.Equivalent(Some(Token.PowerAssign), res)
+    Assert.Equal<char list>((" 4" |> Seq.toList), rest)
+
+[<Fact>]
+let ``Operator: **`` () = 
+    let res, rest = Operators("** 4" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Power), res)
+    Assert.Equal<char list>((" 4" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``Operator: *`` () = 
+    let res, rest = Operators("* 4" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Mul), res)
+    Assert.Equal<char list>((" 4" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``Operator: None`` () = 
+    let res, rest = Operators(" 4" |> Seq.toList)
+    Assert.Equivalent(Option.None, res)
+    Assert.Equal<char list>((" 4" |> Seq.toList), rest)
