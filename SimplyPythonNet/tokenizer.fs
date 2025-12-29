@@ -280,7 +280,13 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
     | 'b' | 'B' ->
         (Option.None, Option.None, res)
     | '.' ->
-        (Option.None, Option.None, res)
+        match PeekNextThreeChars res with
+        | '.', '.', '.' -> (* Handle Ellipsis *)
+            (Some(Token.Ellipsis), Option.None, AdvanceCharacters(res, 3u))
+        | '.', digit, _ when digit >= '0' && digit <= '9' -> (* Handle Fraction Number *)
+            (Option.None, Option.None, AdvanceCharacters(res, 2u)) // Fix!
+        | _ ->
+            (Some(Token.Period), Option.None, AdvanceCharacters(res, 1u))
     | ''' | '"' ->
         (Option.None, Option.None, res)
     | _ ->
@@ -300,3 +306,8 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
                     (Some(Token.Name), Some(text), res)
             else (Option.None, Option.None, res)
     
+let Tokenize (code : string) : Token list =
+    let mutable chars = code |> Seq.toList
+    let mutable tokens : Token list = []
+    
+    List.rev tokens

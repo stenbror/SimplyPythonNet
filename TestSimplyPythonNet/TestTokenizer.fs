@@ -357,3 +357,17 @@ let ``NextSymbol: <<=`` () =
     Assert.Equivalent(Some(Token.None), symbol)
     Assert.Equivalent(Option.None, text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: ...`` () = 
+    let symbol, text, rest = NextSymbol ("..." |> Seq.toList)
+    Assert.Equivalent(Some(Token.Ellipsis), symbol)
+    Assert.Equivalent(Option.None, text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: .`` () = 
+    let symbol, text, rest = NextSymbol (".test" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Ellipsis), symbol)
+    Assert.Equivalent(Option.None, text)
+    Assert.Equal<char list>(("test" |> Seq.toList), rest)
