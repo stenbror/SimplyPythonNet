@@ -1,6 +1,7 @@
 ﻿module TestTokenizer
 
 open System
+open System.Linq
 open Xunit
 open SimplyPythonNet.tokenizer
 
@@ -264,3 +265,12 @@ let ``Soft keyword: _`` () = Assert.Equivalent(Some(Token.Default(1u,1u)), SoftK
 
 [<Fact>]
 let ``Soft keyword: type`` () = Assert.Equivalent(Some(Token.Type(1u,1u)), SoftKeyword (Token.Name( 1u, 1u, "type")))
+
+[<Fact>]
+let ``PeekNextThreeChars: Tripple`` () = Assert.Equal(('*', '*', '='), PeekNextThreeChars ("**=" |> Seq.toList))
+
+[<Fact>]
+let ``PeekNextThreeChars: Double`` () = Assert.Equal(('*', '*', '\u0000'), PeekNextThreeChars ("**" |> Seq.toList))
+
+[<Fact>]
+let ``PeekNextThreeChars: Single`` () = Assert.Equal(('*', '\u0000', '\u0000'), PeekNextThreeChars ("*" |> Seq.toList))

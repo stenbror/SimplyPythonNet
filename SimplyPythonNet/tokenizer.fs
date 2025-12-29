@@ -202,3 +202,16 @@ let SoftKeyword (symbol : Token) : Option<Token> =
             |   "_"     -> Some(Token.Default(s, e))
             |   _       -> Option.None
     |   _ -> Option.None
+    
+let PeekNextThreeChars (chars : char list) : (char * char * char) =
+    let one, rest1 = match chars with
+                     | head :: rest -> head, rest
+                     | [] -> '\u0000', chars
+    let two, rest2 = match rest1 with
+                     | head :: rest -> head, rest
+                     | [] -> '\u0000', rest1
+    let three, _ =   match rest2 with
+                     | head :: rest -> head, rest
+                     | [] -> '\u0000', rest2
+                                
+    (one, two, three)
