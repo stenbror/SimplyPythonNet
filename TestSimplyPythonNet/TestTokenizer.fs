@@ -420,3 +420,45 @@ let ``NextSymbol: Fraction simple with exponent plus and imaginary and separator
     Assert.Equivalent(Some(Token.Number), symbol)
     Assert.Equivalent(Some(".45e+46J"), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Simple_hex_number`` () = 
+    let symbol, text, rest = NextSymbol ("0X7F" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0x7F"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Simple_hex_number_with_separators`` () = 
+    let symbol, text, rest = NextSymbol ("0x_7_F" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0x7F"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Simple_oct_number`` () = 
+    let symbol, text, rest = NextSymbol ("0o7" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0o7"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Simple_oct_number_with_separators`` () = 
+    let symbol, text, rest = NextSymbol ("0O_7_5" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0o75"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Simple_binary_number`` () = 
+    let symbol, text, rest = NextSymbol ("0b10" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0b10"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Simple_binary_number_with_separators`` () = 
+    let symbol, text, rest = NextSymbol ("0B_1_0" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0b10"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
