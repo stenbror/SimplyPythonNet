@@ -265,6 +265,30 @@ let Operators(chars: char list) : (uint * uint -> Token) option * char list =
             | Option.None ->
                 (Option.None, chars)
                 
+let ReadHexadecimalNumber (chars : char list) : bool * string * char list =
+    let mutable text = String.Empty
+    let mutable res = chars
+    let mutable ok = true
+    
+    while
+        match PeekNextChar res with
+        | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' 
+        | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' ->
+            text <- text + string(PeekNextChar res)
+            res <- AdvanceCharacters (res, 1u)
+            true
+        | '_' ->
+            res <- AdvanceCharacters (res, 1u)
+            if Char.IsDigit(PeekNextChar res) = false then
+                ok <- false
+                text <- "Invalid digit after '_' in hexadecimal number"
+                false
+            else true
+        | _ -> false
+        do ()
+    
+    (ok, text, res)
+                
 let ReadExponent (chars : char list) : bool * string * char list =
     let mutable text = string(PeekNextChar chars)
     let mutable res = AdvanceCharacters(chars, 1u)
