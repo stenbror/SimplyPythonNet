@@ -413,3 +413,10 @@ let ``NextSymbol: Fraction simple with exponent plus and imaginary`` () =
     Assert.Equivalent(Some(Token.Number), symbol)
     Assert.Equivalent(Some(".45e+4J"), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Fraction simple with exponent plus and imaginary and separators`` () = 
+    let symbol, text, rest = NextSymbol (".4_5e+4_6J" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some(".45e+46J"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
