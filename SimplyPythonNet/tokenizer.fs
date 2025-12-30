@@ -426,12 +426,68 @@ let ReadFraction (chars : char list) : bool * string * char list =
         
         (ok, text, res)
         
+let ReadNumber (chars : char list) : (uint * uint -> Token) option * string option * char list =
+    let mutable res = chars
+    let mutable text = String.Empty
+    let mutable produced : (uint * uint -> Token) option * string option * char list = Option.None, Option.None, res
+    
+    if PeekNextChar (res) = '0' then
+        res <- AdvanceCharacters (res, 1u)
+        match PeekNextChar res with
+        | 'x' | 'X' -> (* Handle Hexadecimal Numbers *)
+            res <- AdvanceCharacters (res, 1u)
+            let (ok, text2, rest) = ReadHexadecimalNumber res
+            match ok with
+            | true ->
+                text <- "0x" + text2
+                produced <- (Some(Token.Number), Some(text), rest)
+            | false ->
+                text <- text2
+                produced <- (Option.None, Some(text), res) (* Invalid hexadecimal number detected *)
+        | 'b' | 'B' -> (* Handle Binary Numbers *)
+            res <- AdvanceCharacters (res, 1u)
+            let (ok, text2, rest) = ReadBinaryNumber res
+            match ok with
+            | true ->
+                text <- "0b" + text2
+                produced <- (Some(Token.Number), Some(text), rest)
+            | false ->
+                text <- text2
+                produced <- (Option.None, Some(text), res) (* Invalid binary number detected *)
+        | 'o' | 'O' -> (* Handle Octal Numbers *)
+            res <- AdvanceCharacters (res, 1u)
+            let (ok, text2, rest) = ReadOctalNumber res
+            match ok with
+            | true ->
+                text <- "0o" + text2
+                produced <- (Some(Token.Number), Some(text), rest)
+            | false ->
+                text <- text2
+                produced <- (Option.None, Some(text), res) (* Invalid octal number detected *)
+        | _ ->
+            while (* Ignore leading zeros in decimal number *)
+                match PeekNextChar res with
+                | '_' ->
+                    res <- AdvanceCharacters (res, 1u)
+                    if PeekNextChar res <> '0' then
+                        text <- "Expecting digit after '_' in number"
+                        produced <- (Option.None, Some(text), res)
+                        false
+                    else true
+                | '0' ->
+                    res <- AdvanceCharacters (res, 1u)
+                    true
+                | _ -> false
+                do ()
+    
+    produced
+        
 let NextSymbol (chars : char list) : (uint * uint -> Token) option * string option * char list =
     let mutable res = chars
     match PeekNextChar res with
     | '\u0000' -> (Option.None, Option.None, res)
     | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> (* Handle all Numbers *)
-        (Option.None, Option.None, res)
+        ReadNumber(res)
     | 'u' | 'U' ->
         (Option.None, Option.None, res)
     | 'r' | 'R' ->
