@@ -479,8 +479,18 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
                     true
                 | _ -> false
                 do ()
-    
-    produced
+            text <- "0"
+    else
+        text <- string(PeekNextChar res)
+        res <- AdvanceCharacters (res, 1u)
+        
+    match produced with
+    | (Option.None, Some(text), _) -> produced (* Invalid number detected that starts with zero *)
+    | (Option.None, Option.None, _) ->
+        
+        
+        (Option.None, Option.None, res)
+    | _ ->  produced (* Valid number detected starting with zero *)
         
 let NextSymbol (chars : char list) : (uint * uint -> Token) option * string option * char list =
     let mutable res = chars
