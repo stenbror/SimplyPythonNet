@@ -264,7 +264,74 @@ let Operators(chars: char list) : (uint * uint -> Token) option * char list =
                 (Some(token), AdvanceCharacters(chars, 1u))
             | Option.None ->
                 (Option.None, chars)
-
+                
+let ReadExponent (chars : char list) : bool * string * char list =
+    let mutable text = string(PeekNextChar chars)
+    let mutable res = AdvanceCharacters(chars, 1u)
+    let mutable ok = true
+    
+    match PeekNextChar res with
+    | '+' | '-' ->
+        text <- text + string(PeekNextChar res)
+        res <- AdvanceCharacters(res, 1u)
+    | _ -> ()
+    
+    while
+          match PeekNextChar res with
+          | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ->
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters (res, 1u)
+                if PeekNextChar res = '_' then
+                    res <- AdvanceCharacters (res, 1u)
+                    if Char.IsDigit(PeekNextChar res) = false then
+                        ok <- false
+                        text <- "Invalid digit after '_' in fraction"
+                ok
+          | 'j' | 'J' ->
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters (res, 1u)
+                false
+          | _ -> false
+          do ()
+    
+    (ok, text, res)
+                
+let ReadFraction (chars : char list) : bool * string * char list =
+    let mutable res = AdvanceCharacters(chars, 1u)
+    let mutable text = "."
+    let mutable ok = true
+    
+    if Char.IsDigit(PeekNextChar res) = false then
+        (false, "Expecting digit after '.' in fraction", res)
+    else
+        while 
+            match PeekNextChar res with
+            | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ->
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters (res, 1u)
+                if PeekNextChar res = '_' then
+                    res <- AdvanceCharacters (res, 1u)
+                    if Char.IsDigit(PeekNextChar res) = false then
+                        ok <- false
+                        text <- "Invalid digit after '_' in fraction"
+                ok
+            | 'e' | 'E' ->
+                let (ok2, text2, rest) = ReadExponent res
+                match ok2 with
+                | true -> text <- text + text2
+                | false -> text <- text2
+                res <- rest
+                ok <- ok2
+                false
+            | 'j' | 'J' ->
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters (res, 1u)
+                false
+            | _ -> false
+            do ()
+        
+        (ok, text, res)
+        
 let NextSymbol (chars : char list) : (uint * uint -> Token) option * string option * char list =
     let mutable res = chars
     match PeekNextChar res with
@@ -284,7 +351,10 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
         | '.', '.', '.' -> (* Handle Ellipsis *)
             (Some(Token.Ellipsis), Option.None, AdvanceCharacters(res, 3u))
         | '.', digit, _ when digit >= '0' && digit <= '9' -> (* Handle Fraction Number *)
-            (Option.None, Option.None, AdvanceCharacters(res, 2u)) // Fix!
+            let (ok, text, rest) = ReadFraction res
+            match ok with
+            | true -> (Some(Token.Number), Some(text), rest)
+            | false -> (Option.None, Some(text), rest) (* Invalid fraction number detected *)
         | _ ->
             (Some(Token.Period), Option.None, AdvanceCharacters(res, 1u))
     | ''' | '"' ->
