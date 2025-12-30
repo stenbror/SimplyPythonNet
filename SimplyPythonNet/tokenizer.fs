@@ -487,9 +487,46 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
     match produced with
     | (Option.None, Some(text), _) -> produced (* Invalid number detected that starts with zero *)
     | (Option.None, Option.None, _) ->
+        let mutable ok = true
+        while
+            match PeekNextChar res with
+            | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ->
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters (res, 1u)
+                true
+            | 'j' | 'J' ->
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters (res, 1u)
+                false
+            | '.' ->
+                let (ok2, text2, rest) = ReadFraction res
+                match ok2 with
+                | true -> text <- text + text2
+                | false -> text <- text2
+                res <- rest
+                ok <- ok2
+                false
+            | 'e' | 'E' ->
+                let (ok2, text2, rest) = ReadExponent res
+                match ok2 with
+                | true -> text <- text + text2
+                | false -> text <- text2
+                res <- rest
+                ok <- ok2
+                false
+            | '_' ->
+                res <- AdvanceCharacters (res, 1u)
+                if Char.IsDigit(PeekNextChar res) = false then
+                    ok <- false
+                    text <- "Invalid digit after '_' in decimal number"
+                    false
+                else true
+            | _ -> false
+            do ()
         
-        
-        (Option.None, Option.None, res)
+        match ok with
+            | true -> (Some(Token.Number), Some(text), res)
+            | false -> (Option.None, Some(text), res) (* Invalid fraction number detected *)
     | _ ->  produced (* Valid number detected starting with zero *)
         
 let NextSymbol (chars : char list) : (uint * uint -> Token) option * string option * char list =
