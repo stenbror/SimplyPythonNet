@@ -327,6 +327,37 @@ let ReadOctalNumber (chars : char list) : bool * string * char list =
         do ()
     
     (ok, text, res)
+    
+let ReadBinaryNumber (chars : char list) : bool * string * char list =
+    let mutable text = String.Empty
+    let mutable res = chars
+    let mutable ok = true
+    
+    while
+        match PeekNextChar res with
+        | '0' ->
+            if text <> String.Empty then
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters (res, 1u)
+                true
+            else (* Ignore leading zeros in binary number *)
+                res <- AdvanceCharacters (res, 1u)
+                false
+        | '1' ->
+            text <- text + string(PeekNextChar res)
+            res <- AdvanceCharacters (res, 1u)
+            true
+        | '_' ->
+            res <- AdvanceCharacters (res, 1u)
+            if IsBinaryDigit(PeekNextChar res) = false then
+                ok <- false
+                text <- "Invalid digit after '_' in binary number"
+                false
+            else true
+        | _ -> false
+        do ()
+    
+    (ok, text, res)
                 
 let ReadExponent (chars : char list) : bool * string * char list =
     let mutable text = string(PeekNextChar chars)
