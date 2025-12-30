@@ -249,6 +249,22 @@ let AdvanceCharacters (chars : char list, steps: uint) : char list =
                
     res
     
+let IsHexDigit (c : char) : bool =
+    match c with
+    | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' 
+    | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' -> true
+    | _ -> false
+    
+let IsOctetDigit (c : char) : bool =
+    match c with
+    | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' -> true
+    | _ -> false
+    
+let IsBinaryDigit (c : char) : bool =
+    match c with
+    | '0' | '1' -> true
+    | _ -> false
+    
 let Operators(chars: char list) : (uint * uint -> Token) option * char list =
     match ThreeCharToken(PeekNextThreeChars(chars)) with
     | Some(token) ->
@@ -279,9 +295,32 @@ let ReadHexadecimalNumber (chars : char list) : bool * string * char list =
             true
         | '_' ->
             res <- AdvanceCharacters (res, 1u)
-            if Char.IsDigit(PeekNextChar res) = false then
+            if IsHexDigit(PeekNextChar res) = false then
                 ok <- false
                 text <- "Invalid digit after '_' in hexadecimal number"
+                false
+            else true
+        | _ -> false
+        do ()
+    
+    (ok, text, res)
+    
+let ReadOctalNumber (chars : char list) : bool * string * char list =
+    let mutable text = String.Empty
+    let mutable res = chars
+    let mutable ok = true
+    
+    while
+        match PeekNextChar res with
+        | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' ->
+            text <- text + string(PeekNextChar res)
+            res <- AdvanceCharacters (res, 1u)
+            true
+        | '_' ->
+            res <- AdvanceCharacters (res, 1u)
+            if IsOctetDigit(PeekNextChar res) = false then
+                ok <- false
+                text <- "Invalid digit after '_' in octal number"
                 false
             else true
         | _ -> false
