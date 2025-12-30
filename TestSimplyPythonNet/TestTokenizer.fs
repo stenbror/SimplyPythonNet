@@ -371,3 +371,45 @@ let ``NextSymbol: .`` () =
     Assert.Equivalent(Some(Token.Ellipsis), symbol)
     Assert.Equivalent(Option.None, text)
     Assert.Equal<char list>(("test" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Fraction simple`` () = 
+    let symbol, text, rest = NextSymbol (".45" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some(".45"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Fraction simple with imaginary`` () = 
+    let symbol, text, rest = NextSymbol (".45j" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some(".45j"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Fraction simple with exponent`` () = 
+    let symbol, text, rest = NextSymbol (".45e4" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some(".45e4"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Fraction simple with exponent plus`` () = 
+    let symbol, text, rest = NextSymbol (".45e+4" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some(".45e+4"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Fraction simple with exponent minus`` () = 
+    let symbol, text, rest = NextSymbol (".45e-4" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some(".45e-4"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Fraction simple with exponent plus and imaginary`` () = 
+    let symbol, text, rest = NextSymbol (".45e+4J" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some(".45e+4J"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
