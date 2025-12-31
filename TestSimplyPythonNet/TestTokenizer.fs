@@ -554,3 +554,17 @@ let ``NextSymbol: Reserved keyword starts with try`` () =
     Assert.Equivalent(Some(Token.Try), symbol)
     Assert.Equivalent(Option.None, text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Reserved keyword starts with for`` () =
+    let symbol, text, rest = NextSymbol ("for" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Name), symbol)
+    Assert.Equivalent(Option.None, text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Reserved keyword starts with First`` () =
+    let symbol, text, rest = NextSymbol ("First" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Name), symbol)
+    Assert.Equivalent(Some("First"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)

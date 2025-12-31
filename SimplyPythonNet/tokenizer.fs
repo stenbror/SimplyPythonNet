@@ -560,10 +560,21 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
     | 'b' | 'B' ->
         (Option.None, Option.None, res)
     | 'f' | 'F' ->
-        (Option.None, Option.None, res)
+        match PeekNextThreeChars res with
+        | 'f' , '"', _ | 'f' , ''', _ | 'F', '"', _ | 'F', ''', _ -> ReadString(res)
+        | _ -> 
+            let mutable text = ""
+            while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters(res, 1u)
+            match ReservedKeyword(text) with
+            | Some(token) ->
+                (Some(token), Option.None, res)
+            | Option.None -> 
+                (Some(Token.Name), Some(text), res)
     | 't' | 'T' ->
         match PeekNextThreeChars res with
-        | 't' , '"', _ | 't' , ''', _ | 'T', '"', _ | 'T', ''', _ -> ReadString(res) (* Handle True and False *)
+        | 't' , '"', _ | 't' , ''', _ | 'T', '"', _ | 'T', ''', _ -> ReadString(res) 
         | _ -> 
             let mutable text = ""
             while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
