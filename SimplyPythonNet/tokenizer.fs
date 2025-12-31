@@ -542,6 +542,10 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
             
     | (Option.None, Some(text), _) -> produced (* Invalid number detected that starts with zero *)
     | _ ->  produced (* Valid number detected starting with zero *)
+    
+let ReadString (chars : char list) : (uint * uint -> Token) option * string option * char list =   
+    (* Read a string literal *)
+    (Option.None, Option.None, chars)
         
 let NextSymbol (chars : char list) : (uint * uint -> Token) option * string option * char list =
     let mutable res = chars
@@ -553,10 +557,25 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
         (Option.None, Option.None, res)
     | 'r' | 'R' ->
         (Option.None, Option.None, res)
-    | 'f' | 'F' ->
-        (Option.None, Option.None, res)
     | 'b' | 'B' ->
         (Option.None, Option.None, res)
+    | 'f' | 'F' ->
+        (Option.None, Option.None, res)
+    | 't' | 'T' ->
+        match PeekNextThreeChars res with
+        | 't' , '"', _ | 't' , ''', _ | 'T', '"', _ | 'T', ''', _ -> ReadString(res) (* Handle True and False *)
+        | _ -> 
+            let mutable text = ""
+            while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters(res, 1u)
+            match ReservedKeyword(text) with
+            | Some(token) ->
+                (Some(token), Option.None, res)
+            | Option.None -> 
+                (Some(Token.Name), Some(text), res)
+    | ''' | '"' ->
+        ReadString(res)
     | '.' ->
         match PeekNextThreeChars res with
         | '.', '.', '.' -> (* Handle Ellipsis *)
@@ -568,8 +587,6 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
             | false -> (Option.None, Some(text), rest) (* Invalid fraction number detected *)
         | _ ->
             (Some(Token.Period), Option.None, AdvanceCharacters(res, 1u))
-    | ''' | '"' ->
-        (Option.None, Option.None, res)
     | _ ->
         match Operators(res) with (* Check for all valid Operators *)
         | Some(token), rest2 ->

@@ -533,3 +533,24 @@ let ``NextSymbol: simple float non zero exponent with imaginary`` () =
     Assert.Equivalent(Some(Token.Number), symbol)
     Assert.Equivalent(Some("1.1e+4j"), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Reserved keyword starts with type`` () =
+    let symbol, text, rest = NextSymbol ("type" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Name), symbol) (* Soft keyword as Name *)
+    Assert.Equivalent(Some("type"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Reserved keyword starts with Type`` () =
+    let symbol, text, rest = NextSymbol ("Type" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Name), symbol)
+    Assert.Equivalent(Some("Type"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Reserved keyword starts with try`` () =
+    let symbol, text, rest = NextSymbol ("try" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Try), symbol)
+    Assert.Equivalent(Option.None, text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
