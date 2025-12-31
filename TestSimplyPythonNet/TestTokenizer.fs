@@ -462,3 +462,31 @@ let ``NextSymbol: Simple_binary_number_with_separators`` () =
     Assert.Equivalent(Some(Token.Number), symbol)
     Assert.Equivalent(Some("0b10"), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: zero`` () = 
+    let symbol, text, rest = NextSymbol ("0" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: zero point zero imaginary`` () = 
+    let symbol, text, rest = NextSymbol ("0.0j" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0.0j"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: zero exponent`` () = 
+    let symbol, text, rest = NextSymbol ("0e-4" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0e-4"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: multiple zero exponent`` () = 
+    let symbol, text, rest = NextSymbol ("00000e-4" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("0e-4"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)

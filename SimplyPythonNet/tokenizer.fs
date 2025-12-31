@@ -465,6 +465,7 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
                 text <- text2
                 produced <- (Option.None, Some(text), res) (* Invalid octal number detected *)
         | _ ->
+            let mutable count_zero = 1
             while (* Ignore leading zeros in decimal number *)
                 match PeekNextChar res with
                 | '_' ->
@@ -476,16 +477,27 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
                     else true
                 | '0' ->
                     res <- AdvanceCharacters (res, 1u)
+                    count_zero <- count_zero + 1
                     true
                 | _ -> false
                 do ()
             text <- "0"
+           
+            match PeekNextChar res with
+            | 'j' | 'J' | 'e' | 'E' | '.' -> 
+                produced <- (Option.None, Some(text), res)
+            | _ ->
+                if count_zero > 1 then
+                    text <- "Leading zeroes in decimal number must be followed by a decimal point or exponent."
+                    produced <- (Option.None, Some(text), res) (* Invalid decimal number detected *)
+                else
+                    produced <- (Option.None, Some(text), res)
     else
         text <- string(PeekNextChar res)
         res <- AdvanceCharacters (res, 1u)
         
     match produced with
-    | (Option.None, Some(text), _) -> produced (* Invalid number detected that starts with zero *)
+    | (Option.None, Some("0"), _)
     | (Option.None, Option.None, _) ->
         let mutable ok = true
         while
@@ -527,6 +539,8 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
         match ok with
             | true -> (Some(Token.Number), Some(text), res)
             | false -> (Option.None, Some(text), res) (* Invalid fraction number detected *)
+            
+    | (Option.None, Some(text), _) -> produced (* Invalid number detected that starts with zero *)
     | _ ->  produced (* Valid number detected starting with zero *)
         
 let NextSymbol (chars : char list) : (uint * uint -> Token) option * string option * char list =
