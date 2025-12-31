@@ -490,3 +490,46 @@ let ``NextSymbol: multiple zero exponent`` () =
     Assert.Equivalent(Some(Token.Number), symbol)
     Assert.Equivalent(Some("0e-4"), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+    
+[<Fact>]
+let ``NextSymbol: simple integer non zero`` () = 
+    let symbol, text, rest = NextSymbol ("1" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("1"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: simple integer non zero nand separators`` () = 
+    let symbol, text, rest = NextSymbol ("1_2_3_45_6" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("123456"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: simple float non zero`` () = 
+    let symbol, text, rest = NextSymbol ("1.1" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("1.1"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: simple float non zero with imaginary`` () = 
+    let symbol, text, rest = NextSymbol ("1.1J" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("1.1J"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: simple float non zero exponent`` () = 
+    let symbol, text, rest = NextSymbol ("1.1e-1" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("1.1e-1"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: simple float non zero exponent with imaginary`` () =
+    let symbol, text, rest = NextSymbol ("1.1e+4j" |> Seq.toList)
+    Assert.Equivalent(Some(Token.Number), symbol)
+    Assert.Equivalent(Some("1.1e+4j"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
