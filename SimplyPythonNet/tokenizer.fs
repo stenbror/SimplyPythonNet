@@ -545,7 +545,50 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
     
 let ReadString (chars : char list) : (uint * uint -> Token) option * string option * char list =   
     (* Read a string literal *)
-    (Option.None, Option.None, chars)
+    let mutable res = chars
+    let mutable text = String.Empty
+    let mutable tripple = false
+    let mutable single_quote = false
+    let mutable empty_string = false
+    
+    (* Start of string *)
+    match PeekNextThreeChars res with
+    | '"', '"', '"' ->
+        tripple <- true
+        text <- text + "\"\"\""
+        single_quote <- false
+        res <- AdvanceCharacters (res, 3u)
+    | '"', '"', _ ->
+        single_quote <- false
+        text <- text + "\"\""
+        res <- AdvanceCharacters (res, 2u)
+        empty_string <- true
+    | '"', _ , _ ->
+        single_quote <- false
+        res <- AdvanceCharacters (res, 1u)
+        text <- text + "\""
+    | '\'', '\'', '\'' ->
+        tripple <- true
+        text <- text + "'''"
+        single_quote <- true
+        res <- AdvanceCharacters (res, 3u)
+    | '\'', '\'', _ ->
+        single_quote <- true
+        text <- text + "''"
+        res <- AdvanceCharacters (res, 2u)
+        empty_string <- true
+    | '\'', _ , _ ->
+        single_quote <- true
+        res <- AdvanceCharacters (res, 1u)
+        text <- text + "'"
+    | _ , _ , _ -> ()
+        
+    (* Check for empty string *)
+    match empty_string with
+    | false ->
+        (Option.None, Option.None, chars)
+    | true ->
+        (Some(Token.String), Some(text), res)
         
 let NextSymbol (chars : char list) : (uint * uint -> Token) option * string option * char list =
     let mutable res = chars

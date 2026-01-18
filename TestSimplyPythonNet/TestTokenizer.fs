@@ -568,3 +568,17 @@ let ``NextSymbol: Reserved keyword starts with First`` () =
     Assert.Equivalent(Some(Token.Name), symbol)
     Assert.Equivalent(Some("First"), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Empty single quote string`` () =
+    let symbol, text, rest = NextSymbol ("''" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("''"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Empty double quote string`` () =
+    let symbol, text, rest = NextSymbol ("\"\"" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("\"\""), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
