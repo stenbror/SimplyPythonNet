@@ -582,3 +582,45 @@ let ``NextSymbol: Empty double quote string`` () =
     Assert.Equivalent(Some(Token.String), symbol)
     Assert.Equivalent(Some("\"\""), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Empty tripple single quote string`` () =
+    let symbol, text, rest = NextSymbol ("''''''" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("''''''"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: Empty tripple multiole quote string`` () =
+    let symbol, text, rest = NextSymbol ("\"\"\"\"\"\"" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("\"\"\"\"\"\""), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: single quote string`` () =
+    let symbol, text, rest = NextSymbol ("'Hello, World!'" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("'Hello, World!'"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: tripple single quote string`` () =
+    let symbol, text, rest = NextSymbol ("'''Hello, World!'''" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("'''Hello, World!'''"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: double quote string`` () =
+    let symbol, text, rest = NextSymbol ("\"Hello, World!\"" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("\"Hello, World!\""), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: tripple double quote string`` () =
+    let symbol, text, rest = NextSymbol ("\"\"\"Hello, World!\"\"\"" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("\"\"\"Hello, World!\"\"\""), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)

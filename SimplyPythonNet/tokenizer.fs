@@ -1,6 +1,7 @@
 ﻿module SimplyPythonNet.tokenizer
 
 open System
+open System.Linq
 
 type Token =
     |   Empty
@@ -550,6 +551,7 @@ let ReadString (chars : char list) : (uint * uint -> Token) option * string opti
     let mutable tripple = false
     let mutable single_quote = false
     let mutable empty_string = false
+    let mutable error = false
     
     (* Start of string *)
     match PeekNextThreeChars res with
@@ -586,7 +588,55 @@ let ReadString (chars : char list) : (uint * uint -> Token) option * string opti
     (* Check for empty string *)
     match empty_string with
     | false ->
-        (Option.None, Option.None, chars)
+        
+        while
+            match PeekNextChar res with
+            | '\'' ->
+                match PeekNextThreeChars res with
+                | '\'', '\'', '\'' ->
+                    match tripple && single_quote with
+                    | true ->
+                        res <- AdvanceCharacters (res, 3u)
+                        text <- text + "\'\'\'"
+                        false
+                    | _ ->
+                        res <- AdvanceCharacters (res, 1u)
+                        text <- text + "\'"
+                        false
+                | '\'', _ , _ ->
+                        res <- AdvanceCharacters (res, 1u)
+                        text <- text + "\'"
+                        false
+            | '"' ->
+                match PeekNextThreeChars res with
+                | '"', '"', '"' ->
+                    match tripple && not single_quote with
+                    | true ->
+                        res <- AdvanceCharacters (res, 3u)
+                        text <- text + "\"\"\""
+                        false
+                    | _ ->
+                        res <- AdvanceCharacters (res, 1u)
+                        text <- text + "\""
+                        false
+                | '"', _ , _ ->
+                        res <- AdvanceCharacters (res, 1u)
+                        text <- text + "\""
+                        false
+            | '\r' | '\n'
+            
+            | _ ->
+                let ch = PeekNextChar res
+                text <- text + string(ch)
+                res <- AdvanceCharacters (res, 1u)
+                true
+            do ()
+        
+        match error with
+        | true ->
+            (Option.None, Some(text), res)
+        | false ->
+            (Some(Token.String), Some(text), res)
     | true ->
         (Some(Token.String), Some(text), res)
         
