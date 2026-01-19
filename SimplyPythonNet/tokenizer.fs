@@ -773,7 +773,19 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
                 (Some(Token.Name), Some(text), res)
     | 't' | 'T' ->
         match PeekNextThreeChars res with
-        | 't' , '"', _ | 't' , ''', _ | 'T', '"', _ | 'T', ''', _ -> ReadString(res) 
+        | 't' , '"', _
+        | 't' , ''', _
+        | 'T', '"', _
+        | 'T', ''', _
+        | 't', 'r', '"'
+        | 't', 'r', '''
+        | 'T', 'r', '"'
+        | 'T', 'r', '''     
+        | 't', 'R', '"'
+        | 't', 'R', '''
+        | 'T', 'R', '"'
+        | 'T', 'R', '''
+             -> ReadString(res) 
         | _ -> 
             let mutable text = ""
             while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
