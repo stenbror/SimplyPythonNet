@@ -1,7 +1,5 @@
 ﻿module TestTokenizer
 
-open System
-open System.Linq
 open Xunit
 open SimplyPythonNet.tokenizer
 
@@ -267,7 +265,7 @@ let ``Soft keyword: _`` () = Assert.Equivalent(Some(Token.Default(1u,1u)), SoftK
 let ``Soft keyword: type`` () = Assert.Equivalent(Some(Token.Type(1u,1u)), SoftKeyword (Token.NameLiteral( 1u, 1u, "type")))
 
 [<Fact>]
-let ``PeekNextThreeChars: Tripple`` () = Assert.Equal(('*', '*', '='), PeekNextThreeChars ("**=" |> Seq.toList))
+let ``PeekNextThreeChars: triple`` () = Assert.Equal(('*', '*', '='), PeekNextThreeChars ("**=" |> Seq.toList))
 
 [<Fact>]
 let ``PeekNextThreeChars: Double`` () = Assert.Equal(('*', '*', '\u0000'), PeekNextThreeChars ("**" |> Seq.toList))
@@ -584,14 +582,14 @@ let ``NextSymbol: Empty double quote string`` () =
     Assert.Equal<char list>(("" |> Seq.toList), rest)
     
 [<Fact>]
-let ``NextSymbol: Empty tripple single quote string`` () =
+let ``NextSymbol: Empty triple single quote string`` () =
     let symbol, text, rest = NextSymbol ("''''''" |> Seq.toList)
     Assert.Equivalent(Some(Token.String), symbol)
     Assert.Equivalent(Some("''''''"), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
     
 [<Fact>]
-let ``NextSymbol: Empty tripple multiole quote string`` () =
+let ``NextSymbol: Empty triple multiple quote string`` () =
     let symbol, text, rest = NextSymbol ("\"\"\"\"\"\"" |> Seq.toList)
     Assert.Equivalent(Some(Token.String), symbol)
     Assert.Equivalent(Some("\"\"\"\"\"\""), text)
@@ -605,7 +603,7 @@ let ``NextSymbol: single quote string`` () =
     Assert.Equal<char list>(("" |> Seq.toList), rest)
     
 [<Fact>]
-let ``NextSymbol: tripple single quote string`` () =
+let ``NextSymbol: triple single quote string`` () =
     let symbol, text, rest = NextSymbol ("'''Hello, World!'''" |> Seq.toList)
     Assert.Equivalent(Some(Token.String), symbol)
     Assert.Equivalent(Some("'''Hello, World!'''"), text)
@@ -619,8 +617,65 @@ let ``NextSymbol: double quote string`` () =
     Assert.Equal<char list>(("" |> Seq.toList), rest)
     
 [<Fact>]
-let ``NextSymbol: tripple double quote string`` () =
+let ``NextSymbol: triple double quote string`` () =
     let symbol, text, rest = NextSymbol ("\"\"\"Hello, World!\"\"\"" |> Seq.toList)
     Assert.Equivalent(Some(Token.String), symbol)
     Assert.Equivalent(Some("\"\"\"Hello, World!\"\"\""), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: prefix u for single quote`` () =
+    let symbol, text, rest = NextSymbol ("u''" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("u''"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: prefix u for double quote`` () =
+    let symbol, text, rest = NextSymbol ("u\"\"" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("u\"\""), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: prefix r for single quote`` () =
+    let symbol, text, rest = NextSymbol ("r''" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("r''"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: prefix r for double quote`` () =
+    let symbol, text, rest = NextSymbol ("R\"\"" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("R\"\""), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: prefix f for single quote`` () =
+    let symbol, text, rest = NextSymbol ("f''" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("f''"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: prefix f for double quote`` () =
+    let symbol, text, rest = NextSymbol ("f\"\"" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("f\"\""), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+
+    
+[<Fact>]
+let ``NextSymbol: prefix t for single quote`` () =
+    let symbol, text, rest = NextSymbol ("t''" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("t''"), text)
+    Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``NextSymbol: prefix t for double quote`` () =
+    let symbol, text, rest = NextSymbol ("t\"\"" |> Seq.toList)
+    Assert.Equivalent(Some(Token.String), symbol)
+    Assert.Equivalent(Some("t\"\""), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
