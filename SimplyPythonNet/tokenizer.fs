@@ -553,6 +553,82 @@ let ReadString (chars : char list) : (uint * uint -> Token) option * string opti
     let mutable error = false
     
     (* Prefix handling *)
+    match PeekNextThreeChars res with
+    | 'r', 'f', '\''
+    | 'r', 'f', '"'
+    | 'r', 't', '\''
+    | 'r', 't', '"'
+    | 'r', 'b', '\''
+    | 'r', 'b', '"' 
+    | 'r', 'F', '\''
+    | 'r', 'F', '"'
+    | 'r', 'T', '\''
+    | 'r', 'T', '"'
+    | 'r', 'B', '\''
+    | 'r', 'B', '"'
+    | 'R', 'f', '\''
+    | 'R', 'f', '"'
+    | 'R', 't', '\''
+    | 'R', 't', '"'
+    | 'R', 'b', '\''
+    | 'R', 'b', '"' 
+    | 'R', 'F', '\''
+    | 'R', 'F', '"'
+    | 'R', 'T', '\''
+    | 'R', 'T', '"'
+    | 'R', 'B', '\''
+    | 'R', 'B', '"'
+    | 'b', 'r', '"'
+    | 'b', 'r', '''
+    | 'B', 'r', '"'
+    | 'B', 'r', '''     
+    | 'b', 'R', '"'
+    | 'b', 'R', '''
+    | 'B', 'R', '"'
+    | 'B', 'R', '''
+    | 'f', 'r', '"'
+    | 'f', 'r', '''
+    | 'F', 'r', '"'
+    | 'F', 'r', '''     
+    | 'f', 'R', '"'
+    | 'f', 'R', '''
+    | 'F', 'R', '"'
+    | 'F', 'R', '''
+    | 't', 'r', '"'
+    | 't', 'r', '''
+    | 'T', 'r', '"'
+    | 'T', 'r', '''     
+    | 't', 'R', '"'
+    | 't', 'R', '''
+    | 'T', 'R', '"'
+    | 'T', 'R', ''' ->
+        text <- text + string(PeekNextChar res)
+        res <- AdvanceCharacters (res, 1u)
+        text <- text + string(PeekNextChar res)
+        res <- AdvanceCharacters (res, 1u)
+    | 'u', '"', _
+    | 'u', ''', _
+    | 'U', '"', _
+    | 'U', ''', _
+    | 'r', '\'', _
+    | 'r', '"', _
+    | 'R', '\'', _
+    | 'R', '"', _
+    | 'b', '"', _
+    | 'b', ''', _
+    | 'B', '"', _
+    | 'B', ''', _
+    | 'f', '"', _
+    | 'f', ''', _
+    | 'F', '"', _
+    | 'F', ''', _
+    | 't' , '"', _
+    | 't' , ''', _
+    | 'T', '"', _
+    | 'T', ''', _ ->
+        text <- text + string(PeekNextChar res)
+        res <- AdvanceCharacters (res, 1u)
+    | _ , _ , _ -> ()
     
     (* Start of string *)
     match PeekNextThreeChars res with
@@ -687,6 +763,10 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
                 (Some(Token.Name), Some(text), res)
     | 'r' | 'R' ->
         match PeekNextThreeChars chars with
+        | 'r', '\'', _
+        | 'r', '"', _
+        | 'R', '\'', _
+        | 'R', '"', _
         | 'r', 'f', '\''
         | 'r', 'f', '"'
         | 'r', 't', '\''
