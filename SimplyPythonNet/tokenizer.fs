@@ -669,14 +669,98 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
     | '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' -> (* Handle all Numbers *)
         ReadNumber(res)
     | 'u' | 'U' ->
-        (Option.None, Option.None, res)
+        match PeekNextThreeChars res with
+        | 'u', '"', _
+        | 'u', ''', _
+        | 'U', '"', _
+        | 'U', ''', _
+             -> ReadString(res)
+        | _ -> 
+            let mutable text = ""
+            while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters(res, 1u)
+            match ReservedKeyword(text) with
+            | Some(token) ->
+                (Some(token), Option.None, res)
+            | Option.None -> 
+                (Some(Token.Name), Some(text), res)
     | 'r' | 'R' ->
-        (Option.None, Option.None, res)
+        match PeekNextThreeChars chars with
+        | 'r', 'f', '\''
+        | 'r', 'f', '"'
+        | 'r', 't', '\''
+        | 'r', 't', '"'
+        | 'r', 'b', '\''
+        | 'r', 'b', '"' 
+        | 'r', 'F', '\''
+        | 'r', 'F', '"'
+        | 'r', 'T', '\''
+        | 'r', 'T', '"'
+        | 'r', 'B', '\''
+        | 'r', 'B', '"'
+        | 'R', 'f', '\''
+        | 'R', 'f', '"'
+        | 'R', 't', '\''
+        | 'R', 't', '"'
+        | 'R', 'b', '\''
+        | 'R', 'b', '"' 
+        | 'R', 'F', '\''
+        | 'R', 'F', '"'
+        | 'R', 'T', '\''
+        | 'R', 'T', '"'
+        | 'R', 'B', '\''
+        | 'R', 'B', '"' ->  ReadString(res)
+        | _ ->
+            let mutable text = ""
+            while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters(res, 1u)
+            match ReservedKeyword(text) with
+            | Some(token) ->
+                (Some(token), Option.None, res)
+            | Option.None -> 
+                (Some(Token.Name), Some(text), res)
     | 'b' | 'B' ->
-        (Option.None, Option.None, res)
+        match PeekNextThreeChars res with
+        | 'b', '"', _
+        | 'b', ''', _
+        | 'B', '"', _
+        | 'B', ''', _
+        | 'b', 'r', '"'
+        | 'b', 'r', '''
+        | 'B', 'r', '"'
+        | 'B', 'r', '''     
+        | 'b', 'R', '"'
+        | 'b', 'R', '''
+        | 'B', 'R', '"'
+        | 'B', 'R', '''
+             -> ReadString(res)
+        | _ -> 
+            let mutable text = ""
+            while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
+                text <- text + string(PeekNextChar res)
+                res <- AdvanceCharacters(res, 1u)
+            match ReservedKeyword(text) with
+            | Some(token) ->
+                (Some(token), Option.None, res)
+            | Option.None -> 
+                (Some(Token.Name), Some(text), res)
     | 'f' | 'F' ->
         match PeekNextThreeChars res with
-        | 'f' , '"', _ | 'f' , ''', _ | 'F', '"', _ | 'F', ''', _ -> ReadString(res)
+        | 'f', '"', _
+        | 'f', ''', _
+        | 'F', '"', _
+        | 'F', ''', _
+        | 'f', 'r', '"'
+        | 'f', 'r', '''
+        | 'F', 'r', '"'
+        | 'F', 'r', '''     
+        | 'f', 'R', '"'
+        | 'f', 'R', '''
+        | 'F', 'R', '"'
+        | 'F', 'R', '''
+             -> ReadString(res)
         | _ -> 
             let mutable text = ""
             while Char.IsLetterOrDigit(PeekNextChar res) || PeekNextChar(res) = '_' do
