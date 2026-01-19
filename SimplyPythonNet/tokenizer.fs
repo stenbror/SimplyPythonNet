@@ -1,7 +1,6 @@
 ﻿module SimplyPythonNet.tokenizer
 
 open System
-open System.Linq
 
 type Token =
     |   Empty
@@ -211,7 +210,7 @@ let SoftKeyword (symbol : Token) : Option<Token> =
             |   _       -> Option.None
     |   _ -> Option.None
     
-let PeekNextThreeChars (chars : char list) : (char * char * char) =
+let PeekNextThreeChars (chars : char list) : char * char * char =
     let one, rest1 = match chars with
                      | head :: rest -> head, rest
                      | [] -> '\u0000', chars
@@ -224,7 +223,7 @@ let PeekNextThreeChars (chars : char list) : (char * char * char) =
                                 
     (one, two, three)
 
-let PeekNextTwoChars (chars : char list) : (char * char) =
+let PeekNextTwoChars (chars : char list) : char * char =
     let one, rest1 = match chars with
                      | head :: rest -> head, rest
                      | [] -> '\u0000', chars
@@ -411,7 +410,7 @@ let ReadFraction (chars : char list) : bool * string * char list =
                         text <- "Invalid digit after '_' in fraction"
                 ok
             | 'e' | 'E' ->
-                let (ok2, text2, rest) = ReadExponent res
+                let ok2, text2, rest = ReadExponent res
                 match ok2 with
                 | true -> text <- text + text2
                 | false -> text <- text2
@@ -432,12 +431,12 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
     let mutable text = String.Empty
     let mutable produced : (uint * uint -> Token) option * string option * char list = Option.None, Option.None, res
     
-    if PeekNextChar (res) = '0' then
+    if PeekNextChar res = '0' then
         res <- AdvanceCharacters (res, 1u)
         match PeekNextChar res with
         | 'x' | 'X' -> (* Handle Hexadecimal Numbers *)
             res <- AdvanceCharacters (res, 1u)
-            let (ok, text2, rest) = ReadHexadecimalNumber res
+            let ok, text2, rest = ReadHexadecimalNumber res
             match ok with
             | true ->
                 text <- "0x" + text2
@@ -447,7 +446,7 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
                 produced <- (Option.None, Some(text), res) (* Invalid hexadecimal number detected *)
         | 'b' | 'B' -> (* Handle Binary Numbers *)
             res <- AdvanceCharacters (res, 1u)
-            let (ok, text2, rest) = ReadBinaryNumber res
+            let ok, text2, rest = ReadBinaryNumber res
             match ok with
             | true ->
                 text <- "0b" + text2
@@ -457,7 +456,7 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
                 produced <- (Option.None, Some(text), res) (* Invalid binary number detected *)
         | 'o' | 'O' -> (* Handle Octal Numbers *)
             res <- AdvanceCharacters (res, 1u)
-            let (ok, text2, rest) = ReadOctalNumber res
+            let ok, text2, rest = ReadOctalNumber res
             match ok with
             | true ->
                 text <- "0o" + text2
@@ -498,8 +497,8 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
         res <- AdvanceCharacters (res, 1u)
         
     match produced with
-    | (Option.None, Some("0"), _)
-    | (Option.None, Option.None, _) ->
+    | Option.None, Some("0"), _
+    | Option.None, Option.None, _ ->
         let mutable ok = true
         while
             match PeekNextChar res with
@@ -512,7 +511,7 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
                 res <- AdvanceCharacters (res, 1u)
                 false
             | '.' ->
-                let (ok2, text2, rest) = ReadFraction res
+                let ok2, text2, rest = ReadFraction res
                 match ok2 with
                 | true -> text <- text + text2
                 | false -> text <- text2
@@ -520,7 +519,7 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
                 ok <- ok2
                 false
             | 'e' | 'E' ->
-                let (ok2, text2, rest) = ReadExponent res
+                let ok2, text2, rest = ReadExponent res
                 match ok2 with
                 | true -> text <- text + text2
                 | false -> text <- text2
@@ -541,22 +540,24 @@ let ReadNumber (chars : char list) : (uint * uint -> Token) option * string opti
             | true -> (Some(Token.Number), Some(text), res)
             | false -> (Option.None, Some(text), res) (* Invalid fraction number detected *)
             
-    | (Option.None, Some(text), _) -> produced (* Invalid number detected that starts with zero *)
+    | Option.None, Some("Illegal number starting with zero"), _ -> produced (* Invalid number detected that starts with zero *)
     | _ ->  produced (* Valid number detected starting with zero *)
     
 let ReadString (chars : char list) : (uint * uint -> Token) option * string option * char list =   
     (* Read a string literal *)
     let mutable res = chars
     let mutable text = String.Empty
-    let mutable tripple = false
+    let mutable triple = false
     let mutable single_quote = false
     let mutable empty_string = false
     let mutable error = false
     
+    (* Prefix handling *)
+    
     (* Start of string *)
     match PeekNextThreeChars res with
     | '"', '"', '"' ->
-        tripple <- true
+        triple <- true
         text <- text + "\"\"\""
         single_quote <- false
         res <- AdvanceCharacters (res, 3u)
@@ -570,7 +571,7 @@ let ReadString (chars : char list) : (uint * uint -> Token) option * string opti
         res <- AdvanceCharacters (res, 1u)
         text <- text + "\""
     | '\'', '\'', '\'' ->
-        tripple <- true
+        triple <- true
         text <- text + "'''"
         single_quote <- true
         res <- AdvanceCharacters (res, 3u)
@@ -594,7 +595,7 @@ let ReadString (chars : char list) : (uint * uint -> Token) option * string opti
             | '\'' ->
                 match PeekNextThreeChars res with
                 | '\'', '\'', '\'' ->
-                    match tripple && single_quote with
+                    match triple && single_quote with
                     | true ->
                         res <- AdvanceCharacters (res, 3u)
                         text <- text + "\'\'\'"
@@ -607,10 +608,11 @@ let ReadString (chars : char list) : (uint * uint -> Token) option * string opti
                         res <- AdvanceCharacters (res, 1u)
                         text <- text + "\'"
                         false
+                | _ , _ , _ -> false
             | '"' ->
                 match PeekNextThreeChars res with
                 | '"', '"', '"' ->
-                    match tripple && not single_quote with
+                    match triple && not single_quote with
                     | true ->
                         res <- AdvanceCharacters (res, 3u)
                         text <- text + "\"\"\""
@@ -623,8 +625,28 @@ let ReadString (chars : char list) : (uint * uint -> Token) option * string opti
                         res <- AdvanceCharacters (res, 1u)
                         text <- text + "\""
                         false
-            | '\r' | '\n'
-            
+                | _ , _ , _ -> false
+            | '\r' | '\n' ->
+                match triple with
+                |   true ->
+                        let ch = PeekNextChar res
+                        text <- text + string(ch)
+                        res <- AdvanceCharacters (res, 1u)
+                        true
+                |   false ->
+                    text <- "Newline in single quote string is not allowed!"
+                    error <- true
+                    false
+            | '\u0000' ->
+                match triple with
+                |   true ->
+                    text <- "Null terminated triple string"
+                    error <- true
+                    false
+                |   false ->
+                    text <- "Null terminated single quote string"
+                    error <- true
+                    false
             | _ ->
                 let ch = PeekNextChar res
                 text <- text + string(ch)
@@ -685,7 +707,7 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
         | '.', '.', '.' -> (* Handle Ellipsis *)
             (Some(Token.Ellipsis), Option.None, AdvanceCharacters(res, 3u))
         | '.', digit, _ when digit >= '0' && digit <= '9' -> (* Handle Fraction Number *)
-            let (ok, text, rest) = ReadFraction res
+            let ok, text, rest = ReadFraction res
             match ok with
             | true -> (Some(Token.Number), Some(text), rest)
             | false -> (Option.None, Some(text), rest) (* Invalid fraction number detected *)
