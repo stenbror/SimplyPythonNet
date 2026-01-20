@@ -906,8 +906,40 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
                     (Some(Token.Name), Some(text), res)
             else (Option.None, Option.None, res)
     
-let Tokenize (code : string) : Token list =
+let Tokenize (code : string) : Result<Token list, string> =
     let mutable chars = code |> Seq.toList
+    let length = chars.Length
+    let mutable index = 0u
     let mutable tokens : Token list = []
     
-    List.rev tokens
+    (* Collect most tokens *)    
+    let symbol, value, rest = NextSymbol chars
+    chars <- rest
+    
+    match symbol with
+    | Some(t) ->
+        let r = t(index, uint(length - chars.Length))
+        index <- uint(length - chars.Length)
+        
+        match r with
+        | Name(s, e) ->
+            match value with
+            | Some(t) ->
+                tokens <- Token.NameLiteral(s, e, t) :: tokens
+            | _ -> ()
+        | Number(s, e) ->
+            match value with
+            | Some(t) ->
+                tokens <- Token.NumberLiteral(s, e, t) :: tokens
+            | _ -> ()
+        | String(s, e) ->
+            match value with
+            | Some(t) ->
+                tokens <- Token.StringLiteral(s, e, t) :: tokens
+            | _ -> ()
+        | _ ->
+            tokens <- r :: tokens
+        
+    | _ -> ()
+        
+    Ok( List.rev tokens )

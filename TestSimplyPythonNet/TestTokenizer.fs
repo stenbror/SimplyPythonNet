@@ -735,3 +735,23 @@ let ``NextSymbol: triple double quote with newline`` () =
     Assert.Equivalent(Some(Token.String), symbol)
     Assert.Equivalent(Some("Rt\"\"\"Test\r\nAgain\"\"\""), text)
     Assert.Equal<char list>(("" |> Seq.toList), rest)
+    
+[<Fact>]
+let ``Name literal token`` () =
+    let symbols = "__init__" |> Tokenize
+    Assert.Equal(Ok([ Token.NameLiteral(0u, 8u, "__init__");  ]), symbols)
+    
+[<Fact>]
+let ``Number literal token`` () =
+    let symbols = "0.0j" |> Tokenize
+    Assert.Equal(Ok([ Token.NumberLiteral(0u, 4u, "0.0j");  ]), symbols)
+    
+[<Fact>]
+let ``String literal token`` () =
+    let symbols = "r'Hello, World!'" |> Tokenize
+    Assert.Equal(Ok([ Token.StringLiteral(0u, 16u, "r'Hello, World!'");  ]), symbols)
+    
+[<Fact>]
+let ``power token`` () =
+    let symbols = "**" |> Tokenize
+    Assert.Equal(Ok([ Token.Power(0u, 2u);  ]), symbols)
