@@ -911,6 +911,7 @@ let Tokenize (code : string) : Result<Token list, string> =
     let length = chars.Length
     let mutable index = 0u
     let mutable tokens : Token list = []
+    let mutable parenthesis_stack : char list = []
     
     (* Collect most tokens *)    
     let symbol, value, rest = NextSymbol chars
@@ -937,6 +938,33 @@ let Tokenize (code : string) : Result<Token list, string> =
             | Some(t) ->
                 tokens <- Token.StringLiteral(s, e, t) :: tokens
             | _ -> ()
+        | LeftParen _ ->
+            parenthesis_stack <- '(' :: parenthesis_stack
+            tokens <- r :: tokens
+        | LeftBracket _ ->
+            parenthesis_stack <- '[' :: parenthesis_stack
+            tokens <- r :: tokens
+        | LeftCurly _ ->
+            parenthesis_stack <- '{' :: parenthesis_stack
+            tokens <- r :: tokens
+        | RightParen _ ->
+            match parenthesis_stack.Head with
+            |   '(' ->
+                parenthesis_stack <- parenthesis_stack.Tail
+                tokens <- r :: tokens
+            |   _ -> ()
+        | RightBracket _ ->
+            match parenthesis_stack.Head with
+            |   '[' ->
+                parenthesis_stack <- parenthesis_stack.Tail
+                tokens <- r :: tokens
+            |   _ -> ()
+        | RightCurly _ ->
+            match parenthesis_stack.Head with
+            |   '{' ->
+                parenthesis_stack <- parenthesis_stack.Tail
+                tokens <- r :: tokens
+            |   _ -> ()
         | _ ->
             tokens <- r :: tokens
         
