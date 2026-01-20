@@ -917,6 +917,12 @@ let Tokenize (code : string) : Result<Token list, string * uint> =
     
     while chars.Length > 0 && error = false do
         
+        (* Whitespace removing *)
+        while chars.Head = ' ' || chars.Head = '\t' || chars.Head = '\v' do
+            chars <- AdvanceCharacters (chars, 1u)
+            index <- uint(length - chars.Length)
+        
+        
         (* Collect most tokens *)    
         let symbol, value, rest = NextSymbol chars
         chars <- rest
