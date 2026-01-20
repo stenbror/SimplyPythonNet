@@ -755,3 +755,33 @@ let ``String literal token`` () =
 let ``power token`` () =
     let symbols = "**" |> Tokenize
     Assert.Equal(Ok([ Token.Power(0u, 2u);  ]), symbols)
+    
+[<Fact>]
+let ``Parenthesis '('`` () =
+    let symbols = "(" |> Tokenize
+    Assert.Equal(Ok([ Token.LeftParen(0u, 1u);  ]), symbols)
+    
+[<Fact>]
+let ``Parenthesis '(' and ')'`` () =
+    let symbols = "()" |> Tokenize
+    Assert.Equal(Ok([ Token.LeftParen(0u, 1u); Token.RightParen(1u, 2u);  ]), symbols)
+    
+[<Fact>]
+let ``Parenthesis '['`` () =
+    let symbols = "[" |> Tokenize
+    Assert.Equal(Ok([ Token.LeftBracket(0u, 1u);  ]), symbols)
+    
+[<Fact>]
+let ``Parenthesis '[' and ']'`` () =
+    let symbols = "[]" |> Tokenize
+    Assert.Equal(Ok([ Token.LeftBracket(0u, 1u); Token.RightBracket(1u, 2u);  ]), symbols)
+    
+[<Fact>]
+let ``Parenthesis '{'`` () =
+    let symbols = "{" |> Tokenize
+    Assert.Equal(Ok([ Token.LeftCurly(0u, 1u);  ]), symbols)
+    
+[<Fact>]
+let ``Parenthesis '}' and ']'`` () =
+    let symbols = "{}" |> Tokenize
+    Assert.Equal(Ok([ Token.LeftCurly(0u, 1u); Token.RightCurly(1u, 2u);  ]), symbols)

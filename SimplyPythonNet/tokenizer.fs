@@ -112,7 +112,7 @@ let OneCharToken c =
     |   '(' -> Some(Token.LeftParen)
     |   ')' -> Some(Token.RightParen)
     |   '[' -> Some(Token.LeftBracket)
-    |   ']' -> Some(Token.RightParen)
+    |   ']' -> Some(Token.RightBracket)
     |   '{' -> Some(Token.LeftCurly)
     |   '}' -> Some(Token.RightCurly)
     |   ',' -> Some(Token.Comma)
@@ -923,8 +923,8 @@ let Tokenize (code : string) : Result<Token list, string * uint> =
         
         match symbol with
         | Some(t) ->
-            let r = t(index, uint(length - chars.Length))
-            index <- uint(length - chars.Length)
+            let r = t(index, uint(length - chars.Length))  (* Adding start and end position in source buffer *)
+            index <- uint(length - chars.Length)    (* Move index for token start *)
             
             match r with
             | Name(s, e) ->
