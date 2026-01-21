@@ -4,6 +4,9 @@ open System
 
 type Token =
     |   Empty
+    |   Indent of uint
+    |   Dedent of uint
+    |   NewLine of uint
     (* Reserved keywords *)
     |   False of uint * uint
     |   None of uint * uint
@@ -915,8 +918,13 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
     let mutable error = false
     let mutable error_text = ""
     let mutable at_bol = true
+    let mutable level = 0
+    let mutable blank_line = false
+    let mutable indent_stack : uint list = [ 0u; ]
+    let mutable pending = 0
     
-    while chars.Length > 0 && error = false do (* next line handling *)
+    (* Next line handling *)
+    while chars.Length > 0 && error = false do
         
         (* Get indentation level *)
         if at_bol then
@@ -936,10 +944,31 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
                   | _ -> false
                 do
                     chars <- AdvanceCharacters(chars, 1u)
-            ()
-        
+                    
+            if chars.Length > 0 && ( PeekNextChar chars = '\r' || PeekNextChar chars = '\n' || PeekNextChar chars = '#' ) then
+                if col = 0u && (PeekNextChar chars = '\r' || PeekNextChar chars = '\n') && interactive then blank_line <- false
+                else if interactive then
+                         blank_line <- false
+                         col <- 0u
+                else blank_line <- true
+                
+            (* Analyze indentation level *)
+            if blank_line = false && level > 0 then
+                
+                ()
+                
+            (* Handle Indentation / dedentation tokens *)    
+            if pending <> 0 then
+                if pending < 0 then
+                    while pending < 0 do
+                        tokens <- Token.Dedent(index) :: tokens
+                        pending <- pending + 1
+                else
+                    tokens <- Token.Indent(index) :: tokens
+                    pending <- pending - 1
     
-        while chars.Length > 0 && error = false && at_bol = false do (* Again *)
+        (* Again *)
+        while chars.Length > 0 && error = false && at_bol = false do
             
             (* Whitespace removing *)
             while chars.Head = ' ' || chars.Head = '\t' || chars.Head = '\v' do
@@ -995,17 +1024,21 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
                     | LeftParen _ ->
                         parenthesis_stack <- '(' :: parenthesis_stack
                         tokens <- r :: tokens
+                        level <- level + 1
                     | LeftBracket _ ->
                         parenthesis_stack <- '[' :: parenthesis_stack
                         tokens <- r :: tokens
+                        level <- level + 1
                     | LeftCurly _ ->
                         parenthesis_stack <- '{' :: parenthesis_stack
                         tokens <- r :: tokens
+                        level <- level + 1
                     | RightParen _ ->
                         match parenthesis_stack.Head with
                         |   '(' ->
                             parenthesis_stack <- parenthesis_stack.Tail
                             tokens <- r :: tokens
+                            level <- level - 1
                         |   _ ->
                             error <- true
                             error_text <- "Unmatch '(' to the found ')'"
@@ -1014,6 +1047,7 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
                         |   '[' ->
                             parenthesis_stack <- parenthesis_stack.Tail
                             tokens <- r :: tokens
+                            level <- level - 1
                         |   _ ->
                             error <- true
                             error_text <- "Unmatch '[' to the found ']'"
@@ -1022,6 +1056,7 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
                         |   '{' ->
                             parenthesis_stack <- parenthesis_stack.Tail
                             tokens <- r :: tokens
+                            level <- level - 1
                         |   _ ->
                             error <- true
                             error_text <- "Unmatch '{' to the found '}'"
