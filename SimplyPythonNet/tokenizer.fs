@@ -922,71 +922,75 @@ let Tokenize (code : string) : Result<Token list, string * uint> =
             chars <- AdvanceCharacters (chars, 1u)
             index <- uint(length - chars.Length)
         
-        
-        (* Collect most tokens *)    
-        let symbol, value, rest = NextSymbol chars
-        chars <- rest
-        
-        match symbol with
-        | Some(t) ->
-            let r = t(index, uint(length - chars.Length))  (* Adding start and end position in source buffer *)
-            index <- uint(length - chars.Length)    (* Move index for token start *)
-            
-            match r with
-            | Name(s, e) ->
-                match value with
-                | Some(t) ->
-                    tokens <- Token.NameLiteral(s, e, t) :: tokens
-                | _ -> ()
-            | Number(s, e) ->
-                match value with
-                | Some(t) ->
-                    tokens <- Token.NumberLiteral(s, e, t) :: tokens
-                | _ -> ()
-            | String(s, e) ->
-                match value with
-                | Some(t) ->
-                    tokens <- Token.StringLiteral(s, e, t) :: tokens
-                | _ -> ()
-            | LeftParen _ ->
-                parenthesis_stack <- '(' :: parenthesis_stack
-                tokens <- r :: tokens
-            | LeftBracket _ ->
-                parenthesis_stack <- '[' :: parenthesis_stack
-                tokens <- r :: tokens
-            | LeftCurly _ ->
-                parenthesis_stack <- '{' :: parenthesis_stack
-                tokens <- r :: tokens
-            | RightParen _ ->
-                match parenthesis_stack.Head with
-                |   '(' ->
-                    parenthesis_stack <- parenthesis_stack.Tail
-                    tokens <- r :: tokens
-                |   _ ->
-                    error <- true
-                    error_text <- "Unmatch '(' to the found ')'"
-            | RightBracket _ ->
-                match parenthesis_stack.Head with
-                |   '[' ->
-                    parenthesis_stack <- parenthesis_stack.Tail
-                    tokens <- r :: tokens
-                |   _ ->
-                    error <- true
-                    error_text <- "Unmatch '[' to the found ']'"
-            | RightCurly _ ->
-                match parenthesis_stack.Head with
-                |   '{' ->
-                    parenthesis_stack <- parenthesis_stack.Tail
-                    tokens <- r :: tokens
-                |   _ ->
-                    error <- true
-                    error_text <- "Unmatch '{' to the found '}'"
-            | _ ->
-                tokens <- r :: tokens
-            
+        match chars.Head with
+        | '#' -> (* Handle Comments *)
+            ()
         | _ ->
-            error <- true
-            error_text <- "Illegal character found in source code!"
+        
+            (* Collect most tokens *)    
+            let symbol, value, rest = NextSymbol chars
+            chars <- rest
+            
+            match symbol with
+            | Some(t) ->
+                let r = t(index, uint(length - chars.Length))  (* Adding start and end position in source buffer *)
+                index <- uint(length - chars.Length)    (* Move index for token start *)
+                
+                match r with
+                | Name(s, e) ->
+                    match value with
+                    | Some(t) ->
+                        tokens <- Token.NameLiteral(s, e, t) :: tokens
+                    | _ -> ()
+                | Number(s, e) ->
+                    match value with
+                    | Some(t) ->
+                        tokens <- Token.NumberLiteral(s, e, t) :: tokens
+                    | _ -> ()
+                | String(s, e) ->
+                    match value with
+                    | Some(t) ->
+                        tokens <- Token.StringLiteral(s, e, t) :: tokens
+                    | _ -> ()
+                | LeftParen _ ->
+                    parenthesis_stack <- '(' :: parenthesis_stack
+                    tokens <- r :: tokens
+                | LeftBracket _ ->
+                    parenthesis_stack <- '[' :: parenthesis_stack
+                    tokens <- r :: tokens
+                | LeftCurly _ ->
+                    parenthesis_stack <- '{' :: parenthesis_stack
+                    tokens <- r :: tokens
+                | RightParen _ ->
+                    match parenthesis_stack.Head with
+                    |   '(' ->
+                        parenthesis_stack <- parenthesis_stack.Tail
+                        tokens <- r :: tokens
+                    |   _ ->
+                        error <- true
+                        error_text <- "Unmatch '(' to the found ')'"
+                | RightBracket _ ->
+                    match parenthesis_stack.Head with
+                    |   '[' ->
+                        parenthesis_stack <- parenthesis_stack.Tail
+                        tokens <- r :: tokens
+                    |   _ ->
+                        error <- true
+                        error_text <- "Unmatch '[' to the found ']'"
+                | RightCurly _ ->
+                    match parenthesis_stack.Head with
+                    |   '{' ->
+                        parenthesis_stack <- parenthesis_stack.Tail
+                        tokens <- r :: tokens
+                    |   _ ->
+                        error <- true
+                        error_text <- "Unmatch '{' to the found '}'"
+                | _ ->
+                    tokens <- r :: tokens
+            
+            | _ ->
+                error <- true
+                error_text <- "Illegal character found in source code!"
         
     (* Returning list of tokens or error message *)
     match error with
