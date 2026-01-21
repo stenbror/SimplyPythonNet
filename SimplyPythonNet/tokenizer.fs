@@ -906,7 +906,7 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
                     (Some(Token.Name), Some(text), res)
             else (Option.None, Option.None, res)
     
-let Tokenize (code : string) : Result<Token list, string * uint> =
+let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<Token list, string * uint> =
     let mutable chars = code |> Seq.toList
     let length = chars.Length
     let mutable index = 0u
@@ -914,99 +914,123 @@ let Tokenize (code : string) : Result<Token list, string * uint> =
     let mutable parenthesis_stack : char list = []
     let mutable error = false
     let mutable error_text = ""
+    let mutable at_bol = true
     
-    while chars.Length > 0 && error = false do
+    while chars.Length > 0 && error = false do (* next line handling *)
         
-        (* Whitespace removing *)
-        while chars.Head = ' ' || chars.Head = '\t' || chars.Head = '\v' do
-            chars <- AdvanceCharacters (chars, 1u)
-            index <- uint(length - chars.Length)
-        
-        match chars.Head with
-        | '#' -> (* Handle Comments *)
-            let mutable comment_text = ""
-            while chars.Length > 0 && chars.Head <> '\n' && chars.Head <> '\r' do
-                comment_text <- comment_text + string(PeekNextChar chars)
-                chars <- AdvanceCharacters(chars, 1u)
-                
-        | '\r' | '\n' -> (* Handle Line breaks *)
-            if PeekNextChar chars = '\r' then
-                chars <- AdvanceCharacters(chars, 1u)
-            if PeekNextChar chars = '\n' then
-                chars <- AdvanceCharacters(chars, 1u)
+        (* Get indentation level *)
+        if at_bol then
+            at_bol <- false
+            let mutable col = 0u
+            while chars.Length > 0 &&
+                  match PeekNextChar(chars) with
+                  | ' ' ->
+                      col <- col + 1u
+                      true
+                  | '\t' ->
+                      col <- (col / tab_size + 1u) * tab_size
+                      true
+                  | '\v' ->
+                      col <- 0u
+                      true
+                  | _ -> false
+                do
+                    chars <- AdvanceCharacters(chars, 1u)
             ()
-        | '\\' -> (* Handle line continuation *)
-            chars <- AdvanceCharacters (chars, 1u)
-            index <- uint(length - chars.Length)
-            if chars.Length = 0 && chars.Head <> '\r' && chars.Head <> '\n' then
-                error_text <- "Line continuation without newline"
-                error <- true
-        | _ ->
         
-            (* Collect most tokens *)    
-            let symbol, value, rest = NextSymbol chars
-            chars <- rest
+    
+        while chars.Length > 0 && error = false && at_bol = false do (* Again *)
             
-            match symbol with
-            | Some(t) ->
-                let r = t(index, uint(length - chars.Length))  (* Adding start and end position in source buffer *)
-                index <- uint(length - chars.Length)    (* Move index for token start *)
-                
-                match r with
-                | Name(s, e) ->
-                    match value with
-                    | Some(t) ->
-                        tokens <- Token.NameLiteral(s, e, t) :: tokens
-                    | _ -> ()
-                | Number(s, e) ->
-                    match value with
-                    | Some(t) ->
-                        tokens <- Token.NumberLiteral(s, e, t) :: tokens
-                    | _ -> ()
-                | String(s, e) ->
-                    match value with
-                    | Some(t) ->
-                        tokens <- Token.StringLiteral(s, e, t) :: tokens
-                    | _ -> ()
-                | LeftParen _ ->
-                    parenthesis_stack <- '(' :: parenthesis_stack
-                    tokens <- r :: tokens
-                | LeftBracket _ ->
-                    parenthesis_stack <- '[' :: parenthesis_stack
-                    tokens <- r :: tokens
-                | LeftCurly _ ->
-                    parenthesis_stack <- '{' :: parenthesis_stack
-                    tokens <- r :: tokens
-                | RightParen _ ->
-                    match parenthesis_stack.Head with
-                    |   '(' ->
-                        parenthesis_stack <- parenthesis_stack.Tail
-                        tokens <- r :: tokens
-                    |   _ ->
-                        error <- true
-                        error_text <- "Unmatch '(' to the found ')'"
-                | RightBracket _ ->
-                    match parenthesis_stack.Head with
-                    |   '[' ->
-                        parenthesis_stack <- parenthesis_stack.Tail
-                        tokens <- r :: tokens
-                    |   _ ->
-                        error <- true
-                        error_text <- "Unmatch '[' to the found ']'"
-                | RightCurly _ ->
-                    match parenthesis_stack.Head with
-                    |   '{' ->
-                        parenthesis_stack <- parenthesis_stack.Tail
-                        tokens <- r :: tokens
-                    |   _ ->
-                        error <- true
-                        error_text <- "Unmatch '{' to the found '}'"
-                | _ ->
-                    tokens <- r :: tokens
+            (* Whitespace removing *)
+            while chars.Head = ' ' || chars.Head = '\t' || chars.Head = '\v' do
+                chars <- AdvanceCharacters (chars, 1u)
+                index <- uint(length - chars.Length)
             
+            match chars.Head with
+            | '#' -> (* Handle Comments *)
+                let mutable comment_text = ""
+                while chars.Length > 0 && chars.Head <> '\n' && chars.Head <> '\r' do
+                    comment_text <- comment_text + string(PeekNextChar chars)
+                    chars <- AdvanceCharacters(chars, 1u)
+                    
+            | '\r' | '\n' -> (* Handle Line breaks *)
+                if PeekNextChar chars = '\r' then
+                    chars <- AdvanceCharacters(chars, 1u)
+                if PeekNextChar chars = '\n' then
+                    chars <- AdvanceCharacters(chars, 1u)
+                ()
+            | '\\' -> (* Handle line continuation *)
+                chars <- AdvanceCharacters (chars, 1u)
+                index <- uint(length - chars.Length)
+                if chars.Length = 0 && chars.Head <> '\r' && chars.Head <> '\n' then
+                    error_text <- "Line continuation without newline"
+                    error <- true
             | _ ->
-                error <- true
-                error_text <- "Illegal character found in source code!"
+            
+                (* Collect most tokens *)    
+                let symbol, value, rest = NextSymbol chars
+                chars <- rest
+                
+                match symbol with
+                | Some(t) ->
+                    let r = t(index, uint(length - chars.Length))  (* Adding start and end position in source buffer *)
+                    index <- uint(length - chars.Length)    (* Move index for token start *)
+                    
+                    match r with
+                    | Name(s, e) ->
+                        match value with
+                        | Some(t) ->
+                            tokens <- Token.NameLiteral(s, e, t) :: tokens
+                        | _ -> ()
+                    | Number(s, e) ->
+                        match value with
+                        | Some(t) ->
+                            tokens <- Token.NumberLiteral(s, e, t) :: tokens
+                        | _ -> ()
+                    | String(s, e) ->
+                        match value with
+                        | Some(t) ->
+                            tokens <- Token.StringLiteral(s, e, t) :: tokens
+                        | _ -> ()
+                    | LeftParen _ ->
+                        parenthesis_stack <- '(' :: parenthesis_stack
+                        tokens <- r :: tokens
+                    | LeftBracket _ ->
+                        parenthesis_stack <- '[' :: parenthesis_stack
+                        tokens <- r :: tokens
+                    | LeftCurly _ ->
+                        parenthesis_stack <- '{' :: parenthesis_stack
+                        tokens <- r :: tokens
+                    | RightParen _ ->
+                        match parenthesis_stack.Head with
+                        |   '(' ->
+                            parenthesis_stack <- parenthesis_stack.Tail
+                            tokens <- r :: tokens
+                        |   _ ->
+                            error <- true
+                            error_text <- "Unmatch '(' to the found ')'"
+                    | RightBracket _ ->
+                        match parenthesis_stack.Head with
+                        |   '[' ->
+                            parenthesis_stack <- parenthesis_stack.Tail
+                            tokens <- r :: tokens
+                        |   _ ->
+                            error <- true
+                            error_text <- "Unmatch '[' to the found ']'"
+                    | RightCurly _ ->
+                        match parenthesis_stack.Head with
+                        |   '{' ->
+                            parenthesis_stack <- parenthesis_stack.Tail
+                            tokens <- r :: tokens
+                        |   _ ->
+                            error <- true
+                            error_text <- "Unmatch '{' to the found '}'"
+                    | _ ->
+                        tokens <- r :: tokens
+                
+                | _ ->
+                    error <- true
+                    error_text <- "Illegal character found in source code!"
         
     (* Returning list of tokens or error message *)
     match error with
@@ -1014,3 +1038,5 @@ let Tokenize (code : string) : Result<Token list, string * uint> =
         Error(error_text, index)
     | _ ->
         Ok( List.rev tokens )
+        
+let Tokenize (chars : string) : Result<Token list, string * uint> = TokenizeText(chars, 4u, false)

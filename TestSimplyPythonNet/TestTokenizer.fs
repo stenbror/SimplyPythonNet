@@ -794,4 +794,4 @@ let ``Tokens and whitespace`` () =
 [<Fact>]
 let ``Simple comment line`` () =
     let symbols = "# This is a comment" |> Tokenize
-    Assert.Equal(Ok([ ]), symbols)
+    Assert.Equal(Ok([ ]), symbols) 
