@@ -1074,4 +1074,4 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
     | _ ->
         Ok( List.rev tokens )
         
-let Tokenize (chars : string) : Result<Token list, string * uint> = TokenizeText(chars, 4u, false)
+let Tokenize (code : string) : Result<Token list, string * uint> = TokenizeText(code, 4u, false)
