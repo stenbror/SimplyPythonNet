@@ -924,7 +924,10 @@ let Tokenize (code : string) : Result<Token list, string * uint> =
         
         match chars.Head with
         | '#' -> (* Handle Comments *)
-            ()
+            let mutable comment_text = ""
+            while chars.Length > 0 && chars.Head <> '\n' && chars.Head <> '\r' do
+                comment_text <- comment_text + string(PeekNextChar chars)
+                chars <- AdvanceCharacters(chars, 1u)
         | _ ->
         
             (* Collect most tokens *)    

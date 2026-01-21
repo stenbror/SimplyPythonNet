@@ -790,3 +790,8 @@ let ``Parenthesis '}' and ']'`` () =
 let ``Tokens and whitespace`` () =
     let symbols = "1 + 2" |> Tokenize
     Assert.Equal(Ok([ Token.NumberLiteral(0u, 1u, "1"); Token.Plus(2u, 3u); Token.NumberLiteral(4u, 5u, "2");  ]), symbols)
+    
+[<Fact>]
+let ``Simple comment line`` () =
+    let symbols = "# This is a comment" |> Tokenize
+    Assert.Equal(Ok([ ]), symbols)
