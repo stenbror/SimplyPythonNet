@@ -928,6 +928,19 @@ let Tokenize (code : string) : Result<Token list, string * uint> =
             while chars.Length > 0 && chars.Head <> '\n' && chars.Head <> '\r' do
                 comment_text <- comment_text + string(PeekNextChar chars)
                 chars <- AdvanceCharacters(chars, 1u)
+                
+        | '\r' | '\n' -> (* Handle Line breaks *)
+            if PeekNextChar chars = '\r' then
+                chars <- AdvanceCharacters(chars, 1u)
+            if PeekNextChar chars = '\n' then
+                chars <- AdvanceCharacters(chars, 1u)
+            ()
+        | '\\' -> (* Handle line continuation *)
+            chars <- AdvanceCharacters (chars, 1u)
+            index <- uint(length - chars.Length)
+            if chars.Length = 0 && chars.Head <> '\r' && chars.Head <> '\n' then
+                error_text <- "Line continuation without newline"
+                error <- true
         | _ ->
         
             (* Collect most tokens *)    
