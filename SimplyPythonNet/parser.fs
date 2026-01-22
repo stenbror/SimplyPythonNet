@@ -47,4 +47,4 @@ let rec ParseAtom (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
                             |   _ -> false
                         do ()
                     Ok(AST.String(start, _end, List.rev text), rest_symbols)
-            |   _  -> Error ("Unexpected token", 0u)
+            |   _  -> Error ("Unexpected token", GetTokenStartPosition first)

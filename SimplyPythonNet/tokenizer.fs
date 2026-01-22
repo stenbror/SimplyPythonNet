@@ -105,6 +105,100 @@ type Token =
     |   StringLiteral of uint * uint * string
     
 type TokenStream = Token list
+
+let GetTokenStartPosition (token : Token) : uint =
+    match token with
+    |   Empty -> 0u
+    |   Indent(s) |   Dedent(s) |     NewLine(s) -> s
+    |   False(s, _) -> s
+    |   True(s, _) -> s
+    |   None(s, _) -> s
+    |   As(s, _) -> s
+    |   And(s, _) -> s
+    |   Assert(s, _) -> s
+    |   Async(s, _) -> s
+    |   Await(s, _) -> s
+    |   Break(s, _) -> s
+    |   Class(s, _) -> s
+    |   Continue(s, _) -> s
+    |   Def(s, _) -> s
+    |   Del(s, _) -> s
+    |   Elif(s, _) -> s
+    |   Else(s, _) -> s
+    |   Except(s, _) -> s
+    |   Finally(s, _) -> s
+    |   For(s, _) -> s
+    |   From(s, _) -> s
+    |   Global(s, _) -> s
+    |   If(s, _) -> s
+    |   In(s, _) -> s
+    |   Is(s, _) -> s
+    |   Lambda(s, _) -> s
+    |   Nonlocal(s, _) -> s
+    |   Not(s, _) -> s
+    |   Or(s, _) -> s
+    |   Pass(s, _) -> s
+    |   Raise(s, _) -> s
+    |   Return(s, _) -> s
+    |   Try(s, _) -> s
+    |   While(s, _) -> s
+    |   With(s, _) -> s
+    |   Yield(s, _) -> s
+    |   Match(s, _) -> s
+    |   Case(s, _) -> s
+    |   Type(s, _) -> s
+    |   Default(s, _) -> s
+    |   PlusAssign(s, _) -> s
+    |   MinusAssign(s, _) -> s
+    |   MulAssign(s, _) -> s
+    |   PowerAssign(s, _) -> s
+    |   SlashAssign(s, _) -> s
+    |   DoubleSlashAssign(s, _) -> s
+    |   ModuloAssign(s, _) -> s
+    |   BitwiseAndAssign(s, _) -> s
+    |   BitwiseOrAssign(s, _) -> s
+    |   BitwiseXorAssign(s, _) -> s
+    |   BitwiseShiftLeftAssign(s, _) -> s
+    |   BitwiseShiftRightAssign(s, _) -> s
+    |   MatricesAssign(s, _) -> s
+    |   ColonAssign(s, _) -> s
+    |   BitwiseAnd(s, _) -> s
+    |   BitwiseOr(s, _) -> s
+    |   BitwiseXor(s, _) -> s
+    |   BitwiseInvert(s, _) -> s
+    |   BitwiseShiftLeft(s, _) -> s
+    |   BitwiseShiftRight(s, _) -> s
+    |   LessEqual(s, _) -> s
+    |   GreaterEqual(s, _) -> s
+    |   Equal(s, _) -> s
+    |   NotEqual(s, _) -> s
+    |   Less(s, _) -> s
+    |   Greater(s, _) -> s
+    |   LeftParen(s, _) -> s
+    |   RightParen(s, _) -> s
+    |   LeftBracket(s, _) -> s
+    |   RightBracket(s, _) -> s
+    |   LeftCurly(s, _) -> s
+    |   RightCurly(s, _) -> s
+    |   Comma(s, _) -> s
+    |   Colon(s, _) -> s
+    |   BitwiseNot(s, _) -> s
+    |   SemiColon(s, _) -> s
+    |   Assign(s, _) -> s
+    |   Arrow(s, _) -> s
+    |   Plus(s, _) -> s
+    |   Minus(s, _) -> s
+    |   Mul(s, _) -> s
+    |   Slash(s, _) -> s
+    |   DoubleSlash(s, _) -> s
+    |   Modulo(s, _) -> s
+    |   Matrices(s, _) -> s
+    |   Period(s, _) -> s
+    |   Ellipsis(s, _) -> s
+    |   NumberLiteral(s, _, _) -> s
+    |   NameLiteral(s, _, _) -> s
+    |   StringLiteral(s, _, _) -> s
+    |   _ -> 0u
     
 let OneCharToken c =
     match c with
