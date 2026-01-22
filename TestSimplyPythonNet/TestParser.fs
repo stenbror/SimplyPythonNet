@@ -32,4 +32,24 @@ let ``Atom rule: 34.5e-34J`` () =
 [<Fact>]
 let ``Atom rule: __init__`` () =
     let result = "__init__" |> Tokenize |> ParseAtom
-    Assert.Equal(Ok(AST.Name(0u, 8u, "__init__"), []), result) 
+    Assert.Equal(Ok(AST.Name(0u, 8u, "__init__"), []), result)
+    
+[<Fact>]
+let ``Atom rule: Single string`` () =
+    let result = "r'Test'" |> Tokenize |> ParseAtom
+    Assert.Equal(Ok(AST.String(0u, 7u, [ "r'Test'" ]), []), result)
+    
+[<Fact>]
+let ``Atom rule: Double string`` () =
+    let result = "r'Test' b'World'" |> Tokenize |> ParseAtom
+    Assert.Equivalent(Ok(AST.String(0u, 16u, [ "r'Test'"; "b'World'" ]), []), result)
+    
+[<Fact>]
+let ``Atom rule: empty stream`` () =
+    let result = "" |> Tokenize |> ParseAtom
+    Assert.Equal(Error("Unexpected end of input", 0u), result)
+    
+[<Fact>]
+let ``Atom rule: wrong token`` () =
+    let result = "for" |> Tokenize |> ParseAtom
+    Assert.Equal(Error("Unexpected token", 0u), result)

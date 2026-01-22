@@ -29,4 +29,22 @@ let rec ParseAtom (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
             |   Token.Ellipsis(s, e) -> Ok(AST.Ellipsis(s, e), rest)
             |   Token.NameLiteral(s, e, t) -> Ok(AST.Name(s, e, t), rest)
             |   Token.NumberLiteral(s, e, t) -> Ok(AST.Number(s, e, t), rest)
-            |   _ -> Error ("Unexpected token", 0u)
+            |   Token.StringLiteral(s, e, t) ->
+                    let mutable text = [ t ]
+                    let start = s
+                    let mutable _end = e
+                    let mutable rest_symbols = rest
+                    while
+                        match rest_symbols with
+                        | [] -> false
+                        | first :: rest2 ->
+                            match first with
+                            |   Token.StringLiteral(s, e, t) ->
+                                    text <- t :: text
+                                    _end <- e
+                                    rest_symbols <- rest2
+                                    true
+                            |   _ -> false
+                        do ()
+                    Ok(AST.String(start, _end, List.rev text), rest)
+            |   _  -> Error ("Unexpected token", 0u)
