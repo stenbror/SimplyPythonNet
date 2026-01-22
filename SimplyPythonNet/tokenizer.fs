@@ -959,7 +959,12 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
                     pending <- pending + 1
                     indent_stack <- col :: indent_stack
                 else
-                    ()
+                    while indent_stack.IsEmpty = false && indent_stack.Head > col do
+                        pending <- pending - 1
+                        indent_stack <- indent_stack.Tail
+                    if  indent_stack.IsEmpty = true then
+                        error <- true
+                        error_text <- "Mismatched indentation level"
                 
             (* Handle Indentation / dedentation tokens *)    
             if pending <> 0 then
