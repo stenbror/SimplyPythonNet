@@ -104,6 +104,8 @@ type Token =
     |   String of uint * uint
     |   StringLiteral of uint * uint * string
     
+type TokenStream = Token list
+    
 let OneCharToken c =
     match c with
     |   '&' -> Some(Token.BitwiseAnd)
@@ -909,7 +911,7 @@ let NextSymbol (chars : char list) : (uint * uint -> Token) option * string opti
                     (Some(Token.Name), Some(text), res)
             else (Option.None, Option.None, res)
     
-let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<Token list, string * uint> =
+let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<TokenStream, string * uint> =
     let mutable chars = code |> Seq.toList
     let length = chars.Length
     let mutable index = 0u
@@ -1083,4 +1085,4 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
     | _ ->
         Ok( List.rev tokens )
         
-let Tokenize (code : string) : Result<Token list, string * uint> = TokenizeText(code, 4u, false)
+let Tokenize (code : string) : Result<TokenStream, string * uint> = TokenizeText(code, 4u, false)
