@@ -22,4 +22,14 @@ let ``Atom rule: False`` () =
 [<Fact>]
 let ``Atom rule: ...`` () =
     let result = "..." |> Tokenize |> ParseAtom
-    Assert.Equal(Ok(AST.Ellipsis(0u, 3u), []), result) 
+    Assert.Equal(Ok(AST.Ellipsis(0u, 3u), []), result)
+    
+[<Fact>]
+let ``Atom rule: 34.5e-34J`` () =
+    let result = "34.5e-34J" |> Tokenize |> ParseAtom
+    Assert.Equal(Ok(AST.Number(0u, 9u, "34.5e-34J"), []), result)
+    
+[<Fact>]
+let ``Atom rule: __init__`` () =
+    let result = "__init__" |> Tokenize |> ParseAtom
+    Assert.Equal(Ok(AST.Name(0u, 8u, "__init__"), []), result) 

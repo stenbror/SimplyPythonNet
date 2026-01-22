@@ -14,14 +14,11 @@ type AST =
     
 type NodeThree = Result<(AST * TokenStream), (string * uint)>
     
-
 (* Expression rules *)
 let rec ParseAtom (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
     match stream with
     |   Error(e, p) -> Error(e, p)
     |   Ok(stream_ok) ->
-    
-    
         match stream_ok with
         | [] -> Error ("Unexpected end of input", 0u)
         | first :: rest ->
