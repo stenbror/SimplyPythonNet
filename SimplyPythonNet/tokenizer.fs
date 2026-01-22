@@ -954,8 +954,12 @@ let TokenizeText (code : string, tab_size : uint, interactive: bool) : Result<To
                 
             (* Analyze indentation level *)
             if blank_line = false && level > 0 then
-                
-                ()
+                if indent_stack.Head = col then ()
+                else if col > indent_stack.Head then
+                    pending <- pending + 1
+                    indent_stack <- col :: indent_stack
+                else
+                    ()
                 
             (* Handle Indentation / dedentation tokens *)    
             if pending <> 0 then
