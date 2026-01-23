@@ -66,7 +66,7 @@ and ParsePrimary (stream: Result<TokenStream, string * uint> ) : NodeThree =
             |   Ok(stream_ok) ->
                     let left2, rest = stream_ok
                     match rest with
-                    | [] -> Error ("Unexpected end of input", 0u)
+                    | [] -> Ok(left2, rest) (* End of input, but valid expression *)
                     | first :: _ ->
                         match first with
                         |   _  -> Ok((left2, rest))

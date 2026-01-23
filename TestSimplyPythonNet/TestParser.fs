@@ -53,3 +53,13 @@ let ``Atom rule: empty stream`` () =
 let ``Atom rule: wrong token`` () =
     let result = "for" |> Tokenize |> ParseAtom
     Assert.Equal(Error("Unexpected token", 0u), result)
+    
+[<Fact>]
+let ``Await primary rule:`` () =
+    let result = "await test" |> Tokenize |> ParseAwaitPrimary
+    Assert.Equal(Ok(AST.Await(0u, 0u, AST.Name(6u, 10u, "test")), []), result)
+    
+[<Fact>]
+let ``Await primary rule 2:`` () =
+    let result = "await test +" |> Tokenize |> ParseAwaitPrimary
+    Assert.Equal(Ok(AST.Await(0u, 11u, AST.Name(6u, 10u, "test")), [ Token.Plus(11u, 12u) ]), result)
