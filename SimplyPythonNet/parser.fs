@@ -69,6 +69,7 @@ and ParsePrimary (stream: Result<TokenStream, string * uint> ) : NodeThree =
                     | [] -> Ok(left2, rest) (* End of input, but valid expression *)
                     | first :: _ ->
                         match first with
+                        | Token.LeftParen _  | Token.LeftBracket _ | Token.Period _  -> Error ("TODO! In Parser", GetTokenStartPosition first)
                         |   _  -> Ok((left2, rest))
 
 and ParseAwaitPrimary (stream: Result<TokenStream, string * uint> ) : NodeThree =
