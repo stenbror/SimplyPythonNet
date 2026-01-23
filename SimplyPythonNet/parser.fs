@@ -12,6 +12,7 @@ type AST =
     |   Name of uint * uint * string
     |   String of uint * uint * string list
     |   Await of uint * uint * AST
+    |   Power of uint * uint * AST * AST
     
 type NodeThree = Result<AST * TokenStream, string * uint>
 
@@ -88,12 +89,35 @@ and ParseAwaitPrimary (stream: Result<TokenStream, string * uint> ) : NodeThree 
                             Ok(AST.Await(s, GetStartOfTokenInStream rest2, right3), rest2)
                     |   Error(e, p) -> Error(e, p)
                     
-            |   _  -> Error ("Unexpected token", GetTokenStartPosition first)
+            |   _  -> ParsePrimary stream
             
-            
-            
-            
-            
+and ParsePower(stream: Result<TokenStream, string * uint> ) : NodeThree =    
+    match stream with
+    |   Error(e, p) -> Error(e, p)
+    |   Ok (check) ->
+            let s = GetStartOfTokenInStream check
+            let left = ParseAwaitPrimary stream
+            match left with
+            |   Error(e, p) -> Error(e, p)
+            |   Ok(stream_ok) ->
+                    let left2, rest = stream_ok
+                    match rest with
+                    | [] -> Ok(left2, rest) (* End of input, but valid expression *)
+                    | first :: rest2 ->
+                        match first with
+                        | Token.Power _  ->
+                            let right = ParseFactor (Ok(rest2))
+                            match right with
+                            |   Error(e, p) -> Error(e, p)
+                            |   Ok(stream_ok_2) ->
+                                    let right2, rest3 = stream_ok_2
+                                    Ok(AST.Power(s, GetStartOfTokenInStream rest3, left2, right2), rest3)  
+                        |   _  -> Ok((left2, rest))
+                        
+and ParseFactor(stream: Result<TokenStream, string * uint> ) : NodeThree =    
+    match stream with
+    |   Error(e, p) -> Error(e, p)
+    |   Ok _ -> ParsePower stream
 
 // Empty template function to be used for rules ///////////////////////////////////////////////////////////////////////        
 let DummyFunction (stream: Result<TokenStream, string * uint> ) : NodeThree =

@@ -63,3 +63,18 @@ let ``Await primary rule:`` () =
 let ``Await primary rule 2:`` () =
     let result = "await test +" |> Tokenize |> ParseAwaitPrimary
     Assert.Equal(Ok(AST.Await(0u, 11u, AST.Name(6u, 10u, "test")), [ Token.Plus(11u, 12u) ]), result)
+    
+[<Fact>]
+let ``Power rule: Empty`` () =
+    let result = "test" |> Tokenize |> ParsePower
+    Assert.Equal(Ok(AST.Name(0u, 4u, "test"), []), result)
+    
+[<Fact>]
+let ``Power rule: normal`` () =
+    let result = "5**6" |> Tokenize |> ParsePower
+    Assert.Equal(Ok(AST.Power(0u, 0u, AST.Number(0u, 1u, "5"), AST.Number(3u, 4u, "6")), []), result)
+    
+[<Fact>]
+let ``Power rule: normal 2`` () =
+    let result = "5**6 in" |> Tokenize |> ParsePower
+    Assert.Equal(Ok(AST.Power(0u, 5u, AST.Number(0u, 1u, "5"), AST.Number(3u, 4u, "6")), [ Token.In(5u, 7u) ]), result)
