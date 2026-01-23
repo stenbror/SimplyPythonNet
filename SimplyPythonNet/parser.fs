@@ -13,16 +13,16 @@ type AST =
     |   String of uint * uint * string list
     |   Await of uint * uint * AST
     
-type NodeThree = Result<(AST * TokenStream), (string * uint)>
+type NodeThree = Result<AST * TokenStream, string * uint>
 
 (* Utilities functions*)
 let GetStartOfTokenInStream (tokens: TokenStream) : uint =
     match tokens with
     |   [] -> 0u
-    |   first :: rest -> GetTokenStartPosition first
+    |   first :: _ -> GetTokenStartPosition first
     
 (* Expression rules *)
-let rec ParseAtom (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
+let rec ParseAtom (stream: Result<TokenStream, string * uint> ) : NodeThree =
     match stream with
     |   Error(e, p) -> Error(e, p)
     |   Ok(stream_ok) ->
@@ -46,7 +46,7 @@ let rec ParseAtom (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
                         | [] -> false
                         | first :: rest2 ->
                             match first with
-                            |   Token.StringLiteral(s, e, t) ->
+                            |   Token.StringLiteral(_, e, t) ->
                                     text <- t :: text
                                     _end <- e
                                     rest_symbols <- rest2
@@ -56,17 +56,22 @@ let rec ParseAtom (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
                     Ok(AST.String(start, _end, List.rev text), rest_symbols)
             |   _  -> Error ("Unexpected token", GetTokenStartPosition first)
             
-and ParsePrimary (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
+and ParsePrimary (stream: Result<TokenStream, string * uint> ) : NodeThree =
     match stream with
     |   Error(e, p) -> Error(e, p)
-    |   Ok(stream_ok) ->
-        match stream_ok with
-        | [] -> Error ("Unexpected end of input", 0u)
-        | first :: rest ->
-            match first with
-            |   _  -> Error ("Unexpected token", GetTokenStartPosition first)
+    |   Ok _ ->
+            let left = ParseAtom stream
+            match left with
+            |   Error(e, p) -> Error(e, p)
+            |   Ok(stream_ok) ->
+                    let left2, rest = stream_ok
+                    match rest with
+                    | [] -> Error ("Unexpected end of input", 0u)
+                    | first :: _ ->
+                        match first with
+                        |   _  -> Ok((left2, rest))
 
-and ParseAwaitPrimary (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
+and ParseAwaitPrimary (stream: Result<TokenStream, string * uint> ) : NodeThree =
     match stream with
     |   Error(e, p) -> Error(e, p)
     |   Ok(stream_ok) ->
@@ -74,7 +79,7 @@ and ParseAwaitPrimary (stream: Result<TokenStream, (string * uint)> ) : NodeThre
         | [] -> Error ("Unexpected end of input", 0u)
         | first :: rest ->
             match first with
-            |   Token.Await(s, e) ->
+            |   Token.Await(s, _) ->
                     let right = ParsePrimary (Ok(rest))
                     match right with
                     |   Ok(right_ok) ->
@@ -90,12 +95,12 @@ and ParseAwaitPrimary (stream: Result<TokenStream, (string * uint)> ) : NodeThre
             
 
 // Empty template function to be used for rules ///////////////////////////////////////////////////////////////////////        
-let DummyFunction (stream: Result<TokenStream, (string * uint)> ) : NodeThree =
+let DummyFunction (stream: Result<TokenStream, string * uint> ) : NodeThree =
     match stream with
     |   Error(e, p) -> Error(e, p)
     |   Ok(stream_ok) ->
         match stream_ok with
         | [] -> Error ("Unexpected end of input", 0u)
-        | first :: rest ->
+        | first :: _ ->
             match first with
             |   _  -> Error ("Unexpected token", GetTokenStartPosition first)
