@@ -35,6 +35,7 @@ type Symbol =
     | In of uint * uint
     | And of uint * uint
     | Or of uint * uint
+    | ColonEqual of uint * uint
     
 type AST =
     | Empty
@@ -75,6 +76,7 @@ type AST =
     | Not_ of uint * uint * AST
     | And of uint * uint * AST * AST
     | Or of uint * uint * AST * AST
+    | NamedAssignment of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
 type NodeTree = AST * SymbolStream
@@ -351,6 +353,23 @@ let  (|Disjunction|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Conjunction(left, rest) -> loop left rest s
     
+    
+
+    
+let  (|Expression|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    match stream with
+    //|   Lambda(ast, rest) -> ast, rest
+    |   Disjunction(ast, rest) -> ast, rest
+    
+let  (|NamedExpression|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   Symbol.Name(s, e, t) :: Symbol.ColonEqual _ :: rest ->
+            match rest with
+            |   Expression(ast, rest2) -> AST.NamedAssignment(s, GetEndPosition rest2, AST.Name(s, e, t), ast), rest2
+    |   Expression(ast, rest) -> ast, rest
+            
+    
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | Disjunction(ast, rest) -> ast, rest
+    | Expression(ast, rest) -> ast, rest
