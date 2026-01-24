@@ -19,6 +19,8 @@ type Symbol =
     | FloorDivide of uint * uint
     | Matrices of uint * uint
     | SemiColon of uint * uint
+    | ShiftLeft of uint * uint
+    | ShiftRight of uint * uint
     
 type AST =
     | Empty
@@ -41,6 +43,8 @@ type AST =
     | Matrices of uint * uint * AST * AST
     | Plus of uint * uint * AST * AST
     | Minus of uint * uint * AST * AST
+    | ShiftLeft of uint * uint * AST * AST
+    | ShiftRight of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
 type NodeTree = AST * SymbolStream
@@ -159,6 +163,25 @@ let  (|Sum|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Term(left, rest) -> loop left rest s
     
+let  (|Shift|) (stream : SymbolStream) : NodeTree =
+    let rec loop left symbols s =
+        match symbols with
+        |   Symbol.ShiftLeft _ :: rest ->
+                match rest with
+                |   Sum(right, rest') ->
+                        let left' = AST.ShiftLeft(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.ShiftRight _ :: rest ->
+                match rest with
+                |   Sum(right, rest') ->
+                        let left' = AST.ShiftRight(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   _ -> left, symbols
+        
+    let s = GetStartPosition stream
+    match stream with
+    |   Sum(left, rest) -> loop left rest s
+    
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | Sum(ast, rest) -> ast, rest
+    | Shift(ast, rest) -> ast, rest
