@@ -32,6 +32,11 @@ let GetStartOfTokenInStream (tokens: TokenStream) : uint =
     |   [] -> 0u
     |   first :: _ -> GetTokenStartPosition first
     
+let (|Valid|Failure|) symbol  =
+    match symbol with
+    | Ok n, s -> Valid(n, s)
+    | Error(e, p), _ -> Failure(e, p)
+    
 (* Expression rules *)
 let rec ParseAtom (stream: Result<TokenStream, string * uint> ) : NodeThree =
     match stream with
@@ -170,10 +175,28 @@ and ParseTerm(stream: Result<TokenStream, string * uint> ) : NodeThree =
                     | first :: rest2 ->
                         match first with
                         | Token.Mul _ | Token.Slash _ | Token.DoubleSlash _ | Token.Modulo _ | Token.Matrices _ ->
-                            let right = ParseFactor (Ok(rest2))
-                            match right with
-                            |   Error(e, p) -> Error(e, p)
-                            |   Ok(stream_ok_2) ->
-                                    let right2, rest3 = stream_ok_2
-                                    Ok(AST.Power(s, GetStartOfTokenInStream rest3, left2, right2), rest3)  
+                            let mutable stream2 = rest2
+                            let mutable res = left
+                            while
+                                match rest2 with
+                                | [] -> false
+                                | first :: rest3 ->
+                                    match first with
+                                    | Token.Mul _ ->
+                                        let right = ParseFactor (Ok(rest3))
+                                        match right with
+                                        |   Error(e, p) -> res <- Error(e, p); false
+                                        |   Ok(stream_ok2) ->
+                                                let right2, rest4 = stream_ok2
+                                                //let left_old, streams : NodeThree  = res.IsOk
+                                                res <- Ok(AST.Mul(s, GetStartOfTokenInStream rest4, left2, right2), rest4)
+                                                stream2 <- rest4                                        
+                                                true
+                                    | Token.Slash _
+                                    | Token.DoubleSlash _
+                                    | Token.Modulo _
+                                    | Token.Matrices _ -> true
+                                    | _ -> false
+                                do ()
+                            res    
                         |   _  -> left
