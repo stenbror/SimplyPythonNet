@@ -10,6 +10,8 @@ type Symbol =
     | True of uint * uint
     | Await of uint * uint
     | Plus of uint * uint
+    | Minus of uint * uint
+    | BitwiseInvert of uint * uint
     | Power of uint * uint
     
 type AST =
@@ -23,7 +25,9 @@ type AST =
     | True of uint * uint
     | Await of uint * uint * AST
     | Power of uint * uint * AST * AST
-    | Plus of AST * Symbol * AST
+    | UnaryPlus of uint * uint * AST
+    | UnaryMinus of uint * uint * AST
+    | BitwiseInvert of uint * uint * AST
     
 type SymbolStream = Symbol list
 type NodeTree = AST * SymbolStream
@@ -65,11 +69,24 @@ let (|Power|) (stream : SymbolStream) : NodeTree =
     let s = GetStartPosition stream
     let left, rest = match stream with |   AwaitPrimary(ast, rest2) -> ast, rest2
     match rest with
-    |   Symbol.Power _ :: rest ->
-            match rest with
-            |   AwaitPrimary(right, rest3) -> (AST.Power(s, (GetEndPosition rest3), left, right), rest3)     
+    |   Symbol.Power _ :: rest3 ->
+            match rest3 with
+            |   AwaitPrimary(right, rest4) -> (AST.Power(s, (GetEndPosition rest4), left, right), rest4)     
     |   _ -> left, rest
+    
+let rec (|Factor|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   Symbol.Plus(s, _) :: rest ->
+            match rest with
+            |   Factor(right, rest2) -> (AST.UnaryPlus(s, GetEndPosition rest2, right), rest2)
+    |   Symbol.Minus(s, _) :: rest ->
+            match rest with
+            |   Factor(right, rest2) -> (AST.UnaryMinus(s, GetEndPosition rest2, right), rest2)
+    |   Symbol.BitwiseInvert(s, _) :: rest ->
+            match rest with
+            |   Factor(right, rest2) -> (AST.BitwiseInvert(s, GetEndPosition rest2, right), rest2)     
+    |   Power(ast, rest2) -> ast, rest2
     
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | Power(ast, rest) -> ast, rest
+    | Factor(ast, rest) -> ast, rest
