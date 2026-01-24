@@ -21,6 +21,9 @@ type Symbol =
     | SemiColon of uint * uint
     | ShiftLeft of uint * uint
     | ShiftRight of uint * uint
+    | BitwiseAnd of uint * uint
+    | BitwiseOr of uint * uint
+    | BitwiseXor of uint * uint
     
 type AST =
     | Empty
@@ -45,6 +48,9 @@ type AST =
     | Minus of uint * uint * AST * AST
     | ShiftLeft of uint * uint * AST * AST
     | ShiftRight of uint * uint * AST * AST
+    | BitwiseAnd of uint * uint * AST * AST
+    | BitwiseOr of uint * uint * AST * AST
+    | BitwiseXor of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
 type NodeTree = AST * SymbolStream
@@ -182,6 +188,48 @@ let  (|Shift|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Sum(left, rest) -> loop left rest s
     
+let  (|BitwiseAnd|) (stream : SymbolStream) : NodeTree =
+    let rec loop left symbols s =
+        match symbols with
+        |   Symbol.BitwiseAnd _ :: rest ->
+                match rest with
+                |   Shift(right, rest') ->
+                        let left' = AST.BitwiseAnd(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   _ -> left, symbols
+        
+    let s = GetStartPosition stream
+    match stream with
+    |   Shift(left, rest) -> loop left rest s
+    
+let  (|BitwiseXor|) (stream : SymbolStream) : NodeTree =
+    let rec loop left symbols s =
+        match symbols with
+        |   Symbol.BitwiseXor _ :: rest ->
+                match rest with
+                |   BitwiseAnd(right, rest') ->
+                        let left' = AST.BitwiseXor(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   _ -> left, symbols
+        
+    let s = GetStartPosition stream
+    match stream with
+    |   BitwiseAnd(left, rest) -> loop left rest s
+    
+let  (|BitwiseOr|) (stream : SymbolStream) : NodeTree =
+    let rec loop left symbols s =
+        match symbols with
+        |   Symbol.BitwiseOr _ :: rest ->
+                match rest with
+                |   BitwiseXor(right, rest') ->
+                        let left' = AST.BitwiseOr(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   _ -> left, symbols
+        
+    let s = GetStartPosition stream
+    match stream with
+    |   BitwiseXor(left, rest) -> loop left rest s
+    
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | Shift(ast, rest) -> ast, rest
+    | BitwiseOr(ast, rest) -> ast, rest
