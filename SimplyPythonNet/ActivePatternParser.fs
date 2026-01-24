@@ -33,6 +33,8 @@ type Symbol =
     | Is of uint * uint
     | Not of uint * uint
     | In of uint * uint
+    | And of uint * uint
+    | Or of uint * uint
     
 type AST =
     | Empty
@@ -71,6 +73,8 @@ type AST =
     | In of uint * uint * AST * AST
     | NotIn of uint * uint * AST * AST
     | Not_ of uint * uint * AST
+    | And of uint * uint * AST * AST
+    | Or of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
 type NodeTree = AST * SymbolStream
@@ -319,6 +323,34 @@ let rec (|Inversion|) (stream : SymbolStream) : NodeTree =
             |   Comparison(right, rest2) -> (AST.Not_(s, GetEndPosition rest2, right), rest2) 
     |   Comparison(ast, rest2) -> ast, rest2
     
+let  (|Conjunction|) (stream : SymbolStream) : NodeTree =
+    let rec loop left symbols s =
+        match symbols with
+        |   Symbol.And _ :: rest ->
+                match rest with
+                |   Inversion(right, rest') ->
+                        let left' = AST.And(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   _ -> left, symbols
+        
+    let s = GetStartPosition stream
+    match stream with
+    |   Inversion(left, rest) -> loop left rest s
+    
+let  (|Disjunction|) (stream : SymbolStream) : NodeTree =
+    let rec loop left symbols s =
+        match symbols with
+        |   Symbol.Or _ :: rest ->
+                match rest with
+                |   Conjunction(right, rest') ->
+                        let left' = AST.Or(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   _ -> left, symbols
+        
+    let s = GetStartPosition stream
+    match stream with
+    |   Conjunction(left, rest) -> loop left rest s
+    
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | Inversion(ast, rest) -> ast, rest
+    | Disjunction(ast, rest) -> ast, rest
