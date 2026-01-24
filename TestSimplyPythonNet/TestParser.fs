@@ -78,3 +78,23 @@ let ``Power rule: normal`` () =
 let ``Power rule: normal 2`` () =
     let result = "5**6 in" |> Tokenize |> ParsePower
     Assert.Equal(Ok(AST.Power(0u, 5u, AST.Number(0u, 1u, "5"), AST.Number(3u, 4u, "6")), [ Token.In(5u, 7u) ]), result)
+    
+[<Fact>]
+let ``Factor rule: normal`` () =
+    let result = "5**6 in" |> Tokenize |> ParseFactor
+    Assert.Equal(Ok(AST.Power(0u, 5u, AST.Number(0u, 1u, "5"), AST.Number(3u, 4u, "6")), [ Token.In(5u, 7u) ]), result)
+    
+[<Fact>]
+let ``Factor rule: plus`` () =
+    let result = "+a -" |> Tokenize |> ParseFactor
+    Assert.Equal(Ok(AST.UnaryPlus(0u, 3u, AST.Name(1u, 2u, "a")), [ Token.Minus(3u, 4u) ]), result)
+    
+[<Fact>]
+let ``Factor rule: minus`` () =
+    let result = "-a -" |> Tokenize |> ParseFactor
+    Assert.Equal(Ok(AST.UnaryMinus(0u, 3u, AST.Name(1u, 2u, "a")), [ Token.Minus(3u, 4u) ]), result)
+    
+[<Fact>]
+let ``Factor rule: invert`` () =
+    let result = "~a -" |> Tokenize |> ParseFactor
+    Assert.Equal(Ok(AST.Invert(0u, 3u, AST.Name(1u, 2u, "a")), [ Token.Minus(3u, 4u) ]), result)
