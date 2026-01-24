@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="TestActivePatternParser.fs" />
     <Compile Include="TestParser.fs" />
     <Compile Include="TestTokenizer.fs" />
   </ItemGroup>

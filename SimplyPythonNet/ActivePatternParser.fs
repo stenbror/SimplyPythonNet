@@ -55,3 +55,8 @@ let (|AwaitPrimary|) (stream : SymbolStream) : NodeTree =
             |   Atom(right, rest2) -> (AST.Await(s, GetEndPosition rest2, right), rest2)     
     |   Atom(ast, rest2) -> ast, rest2
     
+    
+    
+let Parse(stream : SymbolStream) : NodeTree =
+    match stream with
+    | AwaitPrimary(ast, rest) -> ast, rest
