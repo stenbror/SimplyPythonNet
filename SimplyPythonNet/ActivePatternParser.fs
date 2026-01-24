@@ -70,6 +70,7 @@ type AST =
     | IsNot of uint * uint * AST * AST
     | In of uint * uint * AST * AST
     | NotIn of uint * uint * AST * AST
+    | Not_ of uint * uint * AST
     
 type SymbolStream = Symbol list
 type NodeTree = AST * SymbolStream
@@ -311,6 +312,13 @@ let  (|Comparison|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   BitwiseOr(left, rest) -> loop left rest s
     
+let rec (|Inversion|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   Symbol.Not(s, _) :: rest ->
+            match rest with
+            |   Comparison(right, rest2) -> (AST.Not_(s, GetEndPosition rest2, right), rest2) 
+    |   Comparison(ast, rest2) -> ast, rest2
+    
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | Comparison(ast, rest) -> ast, rest
+    | Inversion(ast, rest) -> ast, rest
