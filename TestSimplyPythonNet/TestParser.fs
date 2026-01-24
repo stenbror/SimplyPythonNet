@@ -98,3 +98,8 @@ let ``Factor rule: minus`` () =
 let ``Factor rule: invert`` () =
     let result = "~a -" |> Tokenize |> ParseFactor
     Assert.Equal(Ok(AST.Invert(0u, 3u, AST.Name(1u, 2u, "a")), [ Token.Minus(3u, 4u) ]), result)
+    
+[<Fact>]
+let ``Term rule: plus`` () =
+    let result = "+a -" |> Tokenize |> ParseTerm
+    Assert.Equal(Ok(AST.UnaryPlus(0u, 3u, AST.Name(1u, 2u, "a")), [ Token.Minus(3u, 4u) ]), result)

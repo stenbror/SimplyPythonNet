@@ -16,6 +16,13 @@ type AST =
     |   UnaryPlus of uint * uint * AST
     |   UnaryMinus of uint * uint * AST
     |   Invert of uint * uint * AST
+    |   Mul of uint * uint * AST * AST
+    |   Slash of uint * uint * AST * AST
+    |   DoubleSlash of uint * uint * AST * AST
+    |   Modulo of uint * uint * AST * AST
+    |   At of uint * uint * AST * AST
+    |   Plus of uint * uint * AST * AST
+    |   Minus of uint * uint * AST * AST
     
 type NodeThree = Result<AST * TokenStream, string * uint>
 
@@ -97,7 +104,7 @@ and ParseAwaitPrimary (stream: Result<TokenStream, string * uint> ) : NodeThree 
 and ParsePower(stream: Result<TokenStream, string * uint> ) : NodeThree =    
     match stream with
     |   Error(e, p) -> Error(e, p)
-    |   Ok (check) ->
+    |   Ok check ->
             let s = GetStartOfTokenInStream check
             let left = ParseAwaitPrimary stream
             match left with
@@ -147,3 +154,26 @@ and ParseFactor(stream: Result<TokenStream, string * uint> ) : NodeThree =
                                     let right2, rest3 = stream_ok_2
                                     Ok(AST.Invert(s, GetStartOfTokenInStream rest3, right2), rest3)  
                         |   _  -> ParsePower stream
+
+and ParseTerm(stream: Result<TokenStream, string * uint> ) : NodeThree =
+    match stream with
+    |   Error(e, p) -> Error(e, p)
+    |   Ok check ->
+            let s = GetStartOfTokenInStream check
+            let left = ParseFactor stream
+            match left with
+            |   Error(e, p) -> Error(e, p)
+            |   Ok(stream_ok) ->
+                    let left2, rest = stream_ok
+                    match rest with
+                    | [] -> Ok(left2, rest) (* End of input, but valid expression *)
+                    | first :: rest2 ->
+                        match first with
+                        | Token.Mul _ | Token.Slash _ | Token.DoubleSlash _ | Token.Modulo _ | Token.Matrices _ ->
+                            let right = ParseFactor (Ok(rest2))
+                            match right with
+                            |   Error(e, p) -> Error(e, p)
+                            |   Ok(stream_ok_2) ->
+                                    let right2, rest3 = stream_ok_2
+                                    Ok(AST.Power(s, GetStartOfTokenInStream rest3, left2, right2), rest3)  
+                        |   _  -> left
