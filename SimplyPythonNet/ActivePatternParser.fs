@@ -3,7 +3,7 @@
 type Symbol =
     | Name of uint * uint * string
     | Number of uint * uint * string
-    | String of uint * uint * string list
+    | String of uint * uint * string
     | Ellipsis of uint * uint
     | None of uint * uint
     | False of uint * uint
@@ -110,8 +110,23 @@ let rec (|Atom|) (stream : SymbolStream) : NodeTree =
     |   Symbol.None(s, e) :: rest -> AST.None(s, e), rest
     |   Symbol.False(s, e) :: rest -> AST.False(s, e), rest
     |   Symbol.True(s, e) :: rest -> AST.True(s, e), rest
+    |   Strings(s, e) -> s, e
     |   _ -> failwith "Expecting an expression value!"
     
+and (|Strings|_|) (stream : SymbolStream) : NodeTree option =
+    let s = GetStartPosition stream
+    let rec loop acc tokens =
+        match tokens with
+        | Symbol.String(_, _,  t) :: rest ->
+            loop (t :: acc) rest
+        | _ ->
+            List.rev acc, tokens
+
+    let res, restFinal = loop [] stream
+    match res.Length with
+    | 0 -> Some(AST.Empty, restFinal)
+    | _ -> Some(AST.String(s, GetStartPosition restFinal, res), restFinal)
+      
 and (|Primary|) (stream: SymbolStream) : NodeTree =
     match stream with
     |   Atom(ast, rest2) -> ast, rest2
