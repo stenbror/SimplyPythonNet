@@ -24,6 +24,15 @@ type Symbol =
     | BitwiseAnd of uint * uint
     | BitwiseOr of uint * uint
     | BitwiseXor of uint * uint
+    | Less of uint * uint
+    | Greater of uint * uint
+    | Equal of uint * uint
+    | NotEqual of uint * uint
+    | LessOrEqual of uint * uint
+    | GreaterOrEqual of uint * uint
+    | Is of uint * uint
+    | Not of uint * uint
+    | In of uint * uint
     
 type AST =
     | Empty
@@ -51,6 +60,16 @@ type AST =
     | BitwiseAnd of uint * uint * AST * AST
     | BitwiseOr of uint * uint * AST * AST
     | BitwiseXor of uint * uint * AST * AST
+    | Less of uint * uint * AST * AST
+    | Greater of uint * uint * AST * AST
+    | Equal of uint * uint * AST * AST
+    | NotEqual of uint * uint * AST * AST
+    | LessOrEqual of uint * uint * AST * AST
+    | GreaterOrEqual of uint * uint * AST * AST
+    | Is of uint * uint * AST * AST
+    | IsNot of uint * uint * AST * AST
+    | In of uint * uint * AST * AST
+    | NotIn of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
 type NodeTree = AST * SymbolStream
@@ -230,6 +249,68 @@ let  (|BitwiseOr|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   BitwiseXor(left, rest) -> loop left rest s
     
+let  (|Comparison|) (stream : SymbolStream) : NodeTree =
+    let rec loop left symbols s =
+        match symbols with
+        |   Symbol.Less _ :: rest ->
+                match rest with
+                |   BitwiseOr(right, rest') ->
+                        let left' = AST.Less(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.Greater _ :: rest ->
+                match rest with
+                |   BitwiseOr(right, rest') ->
+                        let left' = AST.Greater(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.Equal _ :: rest ->
+                match rest with
+                |   BitwiseOr(right, rest') ->
+                        let left' = AST.Equal(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.NotEqual _ :: rest ->
+                match rest with
+                |   BitwiseOr(right, rest') ->
+                        let left' = AST.NotEqual(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.LessOrEqual _ :: rest ->
+                match rest with
+                |   BitwiseOr(right, rest') ->
+                        let left' = AST.LessOrEqual(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.GreaterOrEqual _ :: rest ->
+                match rest with
+                |   BitwiseOr(right, rest') ->
+                        let left' = AST.GreaterOrEqual(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.In _ :: rest ->
+                match rest with
+                |   BitwiseOr(right, rest') ->
+                        let left' = AST.In(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.Is _ :: rest ->
+                match rest with
+                |   Symbol.Not _ :: rest2 ->
+                        match rest2 with
+                        |   BitwiseOr(right, rest3') ->
+                                let left' = AST.IsNot(s, GetStartPosition rest3', left, right)
+                                loop left' rest3' s
+                |   BitwiseOr(right, rest') ->
+                        let left' = AST.Is(s, GetStartPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.Not _ :: rest ->
+                match rest with
+                |   Symbol.In _ :: rest2 ->
+                        match rest2 with
+                        |   BitwiseOr(right, rest3') ->
+                                let left' = AST.NotIn(s, GetStartPosition rest3', left, right)
+                                loop left' rest3' s
+                |   _ -> failwith "Expecting 'in' after 'not' in expression" 
+        |   _ -> left, symbols
+        
+    let s = GetStartPosition stream
+    match stream with
+    |   BitwiseOr(left, rest) -> loop left rest s
+    
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | BitwiseOr(ast, rest) -> ast, rest
+    | Comparison(ast, rest) -> ast, rest
