@@ -79,6 +79,7 @@ type AST =
     | NamedAssignment of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
+
 type NodeTree = AST * SymbolStream
 
 (* Utilities functions *)
@@ -99,7 +100,7 @@ let GetEndPosition (stream : SymbolStream) : uint =
 
 (* Expression patterns  *)
 
-let (|Atom|) (stream : SymbolStream) : NodeTree =
+let rec (|Atom|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Name(s, e, t) :: rest -> AST.Name(s, e, t), rest
     |   Symbol.Number(s, e, t) :: rest -> AST.Number(s, e, t), rest
@@ -109,18 +110,18 @@ let (|Atom|) (stream : SymbolStream) : NodeTree =
     |   Symbol.True(s, e) :: rest -> AST.True(s, e), rest
     |   _ -> failwith "Expecting an expression value!"
     
-let (|Primary|) (stream: SymbolStream) : NodeTree =
+and (|Primary|) (stream: SymbolStream) : NodeTree =
     match stream with
     |   Atom(ast, rest2) -> ast, rest2
     
-let (|AwaitPrimary|) (stream : SymbolStream) : NodeTree =
+and (|AwaitPrimary|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Await(s, _) :: rest ->
             match rest with
             |   Atom(right, rest2) -> (AST.Await(s, GetEndPosition rest2, right), rest2)     
     |   Primary(ast, rest2) -> ast, rest2
     
-let (|Power|) (stream : SymbolStream) : NodeTree =
+and (|Power|) (stream : SymbolStream) : NodeTree =
     let s = GetStartPosition stream
     let left, rest = match stream with |   AwaitPrimary(ast, rest2) -> ast, rest2
     match rest with
@@ -129,7 +130,7 @@ let (|Power|) (stream : SymbolStream) : NodeTree =
             |   AwaitPrimary(right, rest4) -> (AST.Power(s, (GetEndPosition rest4), left, right), rest4)     
     |   _ -> left, rest
     
-let rec (|Factor|) (stream : SymbolStream) : NodeTree =
+and (|Factor|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Plus(s, _) :: rest ->
             match rest with
@@ -142,7 +143,7 @@ let rec (|Factor|) (stream : SymbolStream) : NodeTree =
             |   Factor(right, rest2) -> (AST.BitwiseInvert(s, GetEndPosition rest2, right), rest2)     
     |   Power(ast, rest2) -> ast, rest2
     
-let  (|Term|) (stream : SymbolStream) : NodeTree =
+and  (|Term|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.Multiply _ :: rest ->
@@ -176,7 +177,7 @@ let  (|Term|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Factor(left, rest) -> loop left rest s
     
-let  (|Sum|) (stream : SymbolStream) : NodeTree =
+and  (|Sum|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.Plus _ :: rest ->
@@ -195,7 +196,7 @@ let  (|Sum|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Term(left, rest) -> loop left rest s
     
-let  (|Shift|) (stream : SymbolStream) : NodeTree =
+and  (|Shift|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.ShiftLeft _ :: rest ->
@@ -214,7 +215,7 @@ let  (|Shift|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Sum(left, rest) -> loop left rest s
     
-let  (|BitwiseAnd|) (stream : SymbolStream) : NodeTree =
+and  (|BitwiseAnd|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.BitwiseAnd _ :: rest ->
@@ -228,7 +229,7 @@ let  (|BitwiseAnd|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Shift(left, rest) -> loop left rest s
     
-let  (|BitwiseXor|) (stream : SymbolStream) : NodeTree =
+and  (|BitwiseXor|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.BitwiseXor _ :: rest ->
@@ -242,7 +243,7 @@ let  (|BitwiseXor|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   BitwiseAnd(left, rest) -> loop left rest s
     
-let  (|BitwiseOr|) (stream : SymbolStream) : NodeTree =
+and  (|BitwiseOr|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.BitwiseOr _ :: rest ->
@@ -256,7 +257,7 @@ let  (|BitwiseOr|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   BitwiseXor(left, rest) -> loop left rest s
     
-let  (|Comparison|) (stream : SymbolStream) : NodeTree =
+and  (|Comparison|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.Less _ :: rest ->
@@ -318,14 +319,14 @@ let  (|Comparison|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   BitwiseOr(left, rest) -> loop left rest s
     
-let rec (|Inversion|) (stream : SymbolStream) : NodeTree =
+and (|Inversion|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Not(s, _) :: rest ->
             match rest with
             |   Inversion(right, rest2) -> (AST.Not_(s, GetEndPosition rest2, right), rest2) 
     |   Comparison(ast, rest2) -> ast, rest2
     
-let  (|Conjunction|) (stream : SymbolStream) : NodeTree =
+and  (|Conjunction|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.And _ :: rest ->
@@ -339,7 +340,7 @@ let  (|Conjunction|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Inversion(left, rest) -> loop left rest s
     
-let  (|Disjunction|) (stream : SymbolStream) : NodeTree =
+and  (|Disjunction|) (stream : SymbolStream) : NodeTree =
     let rec loop left symbols s =
         match symbols with
         |   Symbol.Or _ :: rest ->
@@ -353,23 +354,22 @@ let  (|Disjunction|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Conjunction(left, rest) -> loop left rest s
     
-    
-
-    
-let  (|Expression|) (stream : SymbolStream) : NodeTree =
-    let s = GetStartPosition stream
-    match stream with
-    //|   Lambda(ast, rest) -> ast, rest
-    |   Disjunction(ast, rest) -> ast, rest
-    
-let  (|NamedExpression|) (stream : SymbolStream) : NodeTree =
+and  (|NamedExpression|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Name(s, e, t) :: Symbol.ColonEqual _ :: rest ->
             match rest with
             |   Expression(ast, rest2) -> AST.NamedAssignment(s, GetEndPosition rest2, AST.Name(s, e, t), ast), rest2
     |   Expression(ast, rest) -> ast, rest
-            
+
     
+
+and  (|Expression|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    match stream with
+    //|   Lambda(ast, rest) -> ast, rest
+    |   Disjunction(ast, rest) -> ast, rest
+    
+
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
     | Expression(ast, rest) -> ast, rest
