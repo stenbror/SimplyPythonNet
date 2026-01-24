@@ -18,6 +18,7 @@ type Symbol =
     | Modulo of uint * uint
     | FloorDivide of uint * uint
     | Matrices of uint * uint
+    | SemiColon of uint * uint
     
 type AST =
     | Empty
@@ -48,10 +49,16 @@ type NodeTree = AST * SymbolStream
 
 let GetStartPosition (stream : SymbolStream) : uint =
     match stream with
+    | Symbol.SemiColon(s, _) :: _ -> s
+    | Symbol.Name(s, _, _) :: _ -> s
+    | Symbol.Number(s, _, _) :: _ -> s
+    | Symbol.Plus(s, _) :: _ -> s
+    | Symbol.Minus(s, _) :: _ -> s
     | _ -> 0u
     
 let GetEndPosition (stream : SymbolStream) : uint =
     match stream with
+    | Symbol.SemiColon(_, e) :: _ -> e
     | _ -> 0u
 
 (* Expression patterns  *)
@@ -105,27 +112,27 @@ let  (|Term|) (stream : SymbolStream) : NodeTree =
         |   Symbol.Multiply _ :: rest ->
                 match rest with
                 |   Factor(right, rest') ->
-                        let left' = AST.Multiply(s, GetEndPosition rest', left, right)
+                        let left' = AST.Multiply(s, GetStartPosition rest', left, right)
                         loop left' rest' s
         |   Symbol.Divide _ :: rest ->
                 match rest with
                 |   Factor(right, rest') ->
-                        let left' = AST.Divide(s, GetEndPosition rest', left, right)
+                        let left' = AST.Divide(s, GetStartPosition rest', left, right)
                         loop left' rest' s
         |   Symbol.Modulo _ :: rest ->
                 match rest with
                 |   Factor(right, rest') ->
-                        let left' = AST.Modulo(s, GetEndPosition rest', left, right)
+                        let left' = AST.Modulo(s, GetStartPosition rest', left, right)
                         loop left' rest' s
         |   Symbol.FloorDivide _ :: rest ->
                 match rest with
                 |   Factor(right, rest') ->
-                        let left' = AST.FloorDivide(s, GetEndPosition rest', left, right)
+                        let left' = AST.FloorDivide(s, GetStartPosition rest', left, right)
                         loop left' rest' s
         |   Symbol.Matrices _ :: rest ->
                 match rest with
                 |   Factor(right, rest') ->
-                        let left' = AST.Matrices(s, GetEndPosition rest', left, right)
+                        let left' = AST.Matrices(s, GetStartPosition rest', left, right)
                         loop left' rest' s
         |   _ -> left, symbols
         
@@ -139,12 +146,12 @@ let  (|Sum|) (stream : SymbolStream) : NodeTree =
         |   Symbol.Plus _ :: rest ->
                 match rest with
                 |   Term(right, rest') ->
-                        let left' = AST.Plus(s, GetEndPosition rest', left, right)
+                        let left' = AST.Plus(s, GetStartPosition rest', left, right)
                         loop left' rest' s
         |   Symbol.Minus _ :: rest ->
                 match rest with
                 |   Term(right, rest') ->
-                        let left' = AST.Minus(s, GetEndPosition rest', left, right)
+                        let left' = AST.Minus(s, GetStartPosition rest', left, right)
                         loop left' rest' s
         |   _ -> left, symbols
         
