@@ -48,12 +48,16 @@ let (|Atom|) (stream : SymbolStream) : NodeTree =
     |   Symbol.True(s, e) :: rest -> AST.True(s, e), rest
     |   _ -> failwith "Expecting an expression value!"
     
+let (|Primary|) (stream: SymbolStream) : NodeTree =
+    match stream with
+    |   Atom(ast, rest2) -> ast, rest2
+    
 let (|AwaitPrimary|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Await(s, _) :: rest ->
             match rest with
             |   Atom(right, rest2) -> (AST.Await(s, GetEndPosition rest2, right), rest2)     
-    |   Atom(ast, rest2) -> ast, rest2
+    |   Primary(ast, rest2) -> ast, rest2
     
     
     
