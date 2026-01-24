@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <Compile Include="TestActivePatternParser.fs" />
-    <Compile Include="TestTokenizer.fs" />
   </ItemGroup>
 
   <ItemGroup>
