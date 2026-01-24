@@ -38,6 +38,8 @@ type AST =
     | Modulo of uint * uint * AST * AST
     | FloorDivide of uint * uint * AST * AST
     | Matrices of uint * uint * AST * AST
+    | Plus of uint * uint * AST * AST
+    | Minus of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
 type NodeTree = AST * SymbolStream
@@ -132,8 +134,24 @@ let  (|Term|) (stream : SymbolStream) : NodeTree =
     |   Factor(left, rest) -> loop left rest s
     
 let  (|Sum|) (stream : SymbolStream) : NodeTree =
-    AST.Empty, stream
+    let rec loop left symbols s =
+        match symbols with
+        |   Symbol.Plus _ :: rest ->
+                match rest with
+                |   Term(right, rest') ->
+                        let left' = AST.Plus(s, GetEndPosition rest', left, right)
+                        loop left' rest' s
+        |   Symbol.Minus _ :: rest ->
+                match rest with
+                |   Term(right, rest') ->
+                        let left' = AST.Minus(s, GetEndPosition rest', left, right)
+                        loop left' rest' s
+        |   _ -> left, symbols
+        
+    let s = GetStartPosition stream
+    match stream with
+    |   Term(left, rest) -> loop left rest s
     
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | Term(ast, rest) -> ast, rest
+    | Sum(ast, rest) -> ast, rest
