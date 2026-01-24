@@ -10,6 +10,7 @@ type Symbol =
     | True of uint * uint
     | Await of uint * uint
     | Plus of uint * uint
+    | Power of uint * uint
     
 type AST =
     | Empty
@@ -21,6 +22,7 @@ type AST =
     | False of uint * uint
     | True of uint * uint
     | Await of uint * uint * AST
+    | Power of uint * uint * AST * AST
     | Plus of AST * Symbol * AST
     
 type SymbolStream = Symbol list
@@ -59,8 +61,15 @@ let (|AwaitPrimary|) (stream : SymbolStream) : NodeTree =
             |   Atom(right, rest2) -> (AST.Await(s, GetEndPosition rest2, right), rest2)     
     |   Primary(ast, rest2) -> ast, rest2
     
-    
+let (|Power|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    let left, rest = match stream with |   AwaitPrimary(ast, rest2) -> ast, rest2
+    match rest with
+    |   Symbol.Power _ :: rest ->
+            match rest with
+            |   AwaitPrimary(right, rest3) -> (AST.Power(s, (GetEndPosition rest3), left, right), rest3)     
+    |   _ -> left, rest
     
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
-    | AwaitPrimary(ast, rest) -> ast, rest
+    | Power(ast, rest) -> ast, rest
