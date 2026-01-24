@@ -13,6 +13,9 @@ type AST =
     |   String of uint * uint * string list
     |   Await of uint * uint * AST
     |   Power of uint * uint * AST * AST
+    |   UnaryPlus of uint * uint * AST
+    |   UnaryMinus of uint * uint * AST
+    |   Invert of uint * uint * AST
     
 type NodeThree = Result<AST * TokenStream, string * uint>
 
@@ -117,15 +120,30 @@ and ParsePower(stream: Result<TokenStream, string * uint> ) : NodeThree =
 and ParseFactor(stream: Result<TokenStream, string * uint> ) : NodeThree =    
     match stream with
     |   Error(e, p) -> Error(e, p)
-    |   Ok _ -> ParsePower stream
-
-// Empty template function to be used for rules ///////////////////////////////////////////////////////////////////////        
-let DummyFunction (stream: Result<TokenStream, string * uint> ) : NodeThree =
-    match stream with
-    |   Error(e, p) -> Error(e, p)
-    |   Ok(stream_ok) ->
-        match stream_ok with
-        | [] -> Error ("Unexpected end of input", 0u)
-        | first :: _ ->
-            match first with
-            |   _  -> Error ("Unexpected token", GetTokenStartPosition first)
+    |   Ok stream_ok ->
+            match stream_ok with
+                    | [] -> Error("Unexpected end of input", 0u)
+                    | first :: rest2 ->
+                        match first with
+                        | Token.Plus (s, _)  ->
+                            let right = ParseFactor (Ok(rest2))
+                            match right with
+                            |   Error(e, p) -> Error(e, p)
+                            |   Ok(stream_ok_2) ->
+                                    let right2, rest3 = stream_ok_2
+                                    Ok(AST.UnaryPlus(s, GetStartOfTokenInStream rest3, right2), rest3)
+                        | Token.Minus (s, _)  ->
+                            let right = ParseFactor (Ok(rest2))
+                            match right with
+                            |   Error(e, p) -> Error(e, p)
+                            |   Ok(stream_ok_2) ->
+                                    let right2, rest3 = stream_ok_2
+                                    Ok(AST.UnaryMinus(s, GetStartOfTokenInStream rest3, right2), rest3)
+                        | Token.BitwiseInvert (s, _)  ->
+                            let right = ParseFactor (Ok(rest2))
+                            match right with
+                            |   Error(e, p) -> Error(e, p)
+                            |   Ok(stream_ok_2) ->
+                                    let right2, rest3 = stream_ok_2
+                                    Ok(AST.Invert(s, GetStartOfTokenInStream rest3, right2), rest3)  
+                        |   _  -> ParsePower stream
