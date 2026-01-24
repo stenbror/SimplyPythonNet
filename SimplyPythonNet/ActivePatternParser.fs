@@ -320,7 +320,7 @@ let rec (|Inversion|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Not(s, _) :: rest ->
             match rest with
-            |   Comparison(right, rest2) -> (AST.Not_(s, GetEndPosition rest2, right), rest2) 
+            |   Inversion(right, rest2) -> (AST.Not_(s, GetEndPosition rest2, right), rest2) 
     |   Comparison(ast, rest2) -> ast, rest2
     
 let  (|Conjunction|) (stream : SymbolStream) : NodeTree =
