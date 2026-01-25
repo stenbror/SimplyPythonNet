@@ -43,6 +43,28 @@ type Symbol =
     | If of uint * uint
     | Else of uint * uint
     | Lambda of uint * uint
+    | As of uint * uint
+    | With of uint * uint
+    | Assert of uint * uint
+    | Import of uint * uint
+    | Global of uint * uint
+    | Nonlocal of uint * uint
+    | Pass of uint * uint
+    | Break of uint * uint
+    | Continue of uint * uint
+    | Return of uint * uint
+    | Raise of uint * uint
+    | Try of uint * uint
+    | Except of uint * uint
+    | Finally of uint * uint
+    | While of uint * uint
+    | Del of uint * uint
+    | Class of uint * uint
+    | Def of uint * uint
+    | For of uint * uint
+    | Async of uint * uint
+    | Elif of uint * uint
+    
     
 type AST =
     | Empty
@@ -140,7 +162,38 @@ let (|ReservedKeywordOrLiteral|_|) (text: char list, start: uint) : (Symbol * ch
                     |   "False" -> Some(Symbol.False(start, start + 5u), rest2)
                     |   "True" -> Some(Symbol.True(start, start + 4u), rest2)
                     |   "None" -> Some(Symbol.None(start, start + 4u), rest2)
-                    
+                    |   "and" -> Some(Symbol.And(start, start + 3u), rest2)
+                    |   "as" -> Some(Symbol.As(start, start + 2u), rest2)
+                    |   "assert" -> Some(Symbol.Assert(start, start + 6u), rest2)
+                    |   "async" -> Some(Symbol.Async(start, start + 5u), rest2)
+                    |   "await" -> Some(Symbol.Await(start, start + 5u), rest2)
+                    |   "break" -> Some(Symbol.Break(start, start + 5u), rest2)
+                    |   "class" -> Some(Symbol.Class(start, start + 5u), rest2)
+                    |   "continue" -> Some(Symbol.Continue(start, start + 8u), rest2)
+                    |   "def" -> Some(Symbol.Def(start, start + 3u), rest2)
+                    |   "del" -> Some(Symbol.Del(start, start + 3u), rest2)
+                    |   "elif" -> Some(Symbol.Elif(start, start + 4u), rest2)
+                    |   "else" -> Some(Symbol.Else(start, start + 4u), rest2)
+                    |   "except" -> Some(Symbol.Except(start, start + 6u), rest2)
+                    |   "finally" -> Some(Symbol.Finally(start, start + 7u), rest2)
+                    |   "for" -> Some(Symbol.For(start, start + 3u), rest2)
+                    |   "from" -> Some(Symbol.From(start, start + 4u), rest2)
+                    |   "global" -> Some(Symbol.Global(start, start + 6u), rest2)
+                    |   "if" -> Some(Symbol.If(start, start + 2u), rest2)
+                    |   "import" -> Some(Symbol.Import(start, start + 6u), rest2)
+                    |   "in" -> Some(Symbol.In(start, start + 2u), rest2)
+                    |   "is" -> Some(Symbol.Is(start, start + 2u), rest2)
+                    |   "lambda" -> Some(Symbol.Lambda(start, start + 6u), rest2)
+                    |   "nonlocal" -> Some(Symbol.Nonlocal(start, start + 7u), rest2)
+                    |   "not" -> Some(Symbol.Not(start, start + 3u), rest2)
+                    |   "or" -> Some(Symbol.Or(start, start + 2u), rest2)
+                    |   "pass" -> Some(Symbol.Pass(start, start + 4u), rest2)
+                    |   "raise" -> Some(Symbol.Raise(start, start + 5u), rest2)
+                    |   "return" -> Some(Symbol.Return(start, start + 6u), rest2)
+                    |   "try" -> Some(Symbol.Try(start, start + 3u), rest2)
+                    |   "while" -> Some(Symbol.While(start, start + 5u), rest2)
+                    |   "with" -> Some(Symbol.With(start, start + 4u), rest2)
+                    |   "yield" -> Some(Symbol.Yield(start, start + 5u), rest2)                  
                     |   _ -> Some(Symbol.Name(start, start + uint keyword.Length, text.ToString()), rest2)
             |   _ -> Option.None
     |   _ -> Option.None
