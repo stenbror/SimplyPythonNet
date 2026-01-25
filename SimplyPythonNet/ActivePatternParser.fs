@@ -64,6 +64,30 @@ type Symbol =
     | For of uint * uint
     | Async of uint * uint
     | Elif of uint * uint
+    | ShiftLeftAssign of uint * uint
+    | ShiftRightAssign of uint * uint
+    | PowerAssignl of uint * uint
+    | FloorDivideAssign of uint * uint
+    | MatricesEqual of uint * uint
+    | PlusEqual of uint * uint
+    | MinusEqual of uint * uint
+    | MultiplyEqual of uint * uint
+    | DivideEqual of uint * uint
+    | ModuloEqual of uint * uint
+    | BitwiseAndEqual of uint * uint
+    | BitwiseOrEqual of uint * uint
+    | BitwiseXorEqual of uint * uint
+    | Arrow of uint * uint
+    | Colon of uint * uint
+    | Semicolon of uint * uint
+    | Period of uint * uint
+    | LeftParenthesis of uint * uint
+    | RightParenthesis of uint * uint
+    | LeftSquareBracket of uint * uint
+    | RightSquareBracket of uint * uint
+    | LeftCurlyBracket of uint * uint
+    | RightCurlyBracket of uint * uint
+    | Assign of uint * uint
     
     
 type AST =
@@ -136,6 +160,7 @@ let GetEndPosition (stream : SymbolStream) : uint =
     | _ -> 0u
 
 (* Tokenizer patterns *)
+
 let (|LiteralStartCharacter|_|) (c: char) =
     if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c = '_' then Some(c) else Option.None
 
@@ -197,6 +222,54 @@ let (|ReservedKeywordOrLiteral|_|) (text: char list, start: uint) : (Symbol * ch
                     |   _ -> Some(Symbol.Name(start, start + uint keyword.Length, text.ToString()), rest2)
             |   _ -> Option.None
     |   _ -> Option.None
+    
+let (|OperatorOrDelimiter|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    match text with
+    |   '<' :: '<' :: '=' :: rest -> Some(Symbol.ShiftLeftAssign(start, start + 3u), rest)
+    |   '>' :: '>' :: '=' :: rest -> Some(Symbol.ShiftRightAssign(start, start + 3u), rest)
+    |   '*':: '*' :: '=' :: rest -> Some(Symbol.PowerAssignl(start, start + 3u), rest)
+    |   '/' :: '/' :: '=' :: rest -> Some(Symbol.FloorDivideAssign(start, start + 3u), rest)
+    |   '.' :: '.' :: '.' :: rest -> Some(Symbol.Ellipsis(start, start + 3u), rest)
+    |   '+' :: '=' :: rest -> Some(Symbol.PlusEqual(start, start + 2u), rest)
+    |   '-' :: '=' :: rest -> Some(Symbol.MinusEqual(start, start + 2u), rest)
+    |   '*' :: '=' :: rest -> Some(Symbol.MultiplyEqual(start, start + 2u), rest)
+    |   '/' :: '=' :: rest -> Some(Symbol.DivideEqual(start, start + 2u), rest)
+    |   '%' :: '=' :: rest -> Some(Symbol.ModuloEqual(start, start + 2u), rest)
+    |   '&' :: '=' :: rest -> Some(Symbol.BitwiseAndEqual(start, start + 2u), rest)
+    |   '|' :: '=' :: rest -> Some(Symbol.BitwiseOrEqual(start, start + 2u), rest)
+    |   '^' :: '=' :: rest -> Some(Symbol.BitwiseXorEqual(start, start + 2u), rest)
+    |   '-' :: '>' :: rest -> Some(Symbol.Arrow(start, start + 2u), rest)
+    |   '/' :: '/' :: rest -> Some(Symbol.FloorDivide(start, start + 2u), rest)
+    |   '<' :: '=' :: rest -> Some(Symbol.LessOrEqual(start, start + 2u), rest)
+    |   '>' :: '=' :: rest -> Some(Symbol.GreaterOrEqual(start, start + 2u), rest)
+    |   '!' :: '=' :: rest -> Some(Symbol.NotEqual(start, start + 2u), rest)
+    |   '@' :: '=' :: rest -> Some(Symbol.MatricesEqual(start, start + 2u), rest)
+    |   ':' :: '=' :: rest -> Some(Symbol.ColonEqual(start, start + 2u), rest)
+    |   '=' :: '=' :: rest -> Some(Symbol.Equal(start, start + 2u), rest)
+    |   '*' :: '*' :: rest -> Some(Symbol.Power(start, start + 2u), rest)
+    |   '+' :: rest -> Some(Symbol.Plus(start, start + 1u), rest)
+    |   '-' :: rest -> Some(Symbol.Minus(start, start + 1u), rest)
+    |   '/' :: rest -> Some(Symbol.Divide(start, start + 1u), rest)
+    |   '%' :: rest -> Some(Symbol.Modulo(start, start + 1u), rest)
+    |   '&' :: rest -> Some(Symbol.BitwiseAnd(start, start + 1u), rest)
+    |   '*' :: rest -> Some(Symbol.Multiply(start, start + 1u), rest)
+    |   '|' :: rest -> Some(Symbol.BitwiseOr(start, start + 1u), rest)
+    |   '^' :: rest -> Some(Symbol.BitwiseXor(start, start + 1u), rest)
+    |   '@' :: rest -> Some(Symbol.Matrices(start, start + 1u), rest)
+    |   '!' :: rest -> Some(Symbol.Not(start, start + 1u), rest)
+    |   ':' :: rest -> Some(Symbol.Colon(start, start + 1u), rest)
+    |   ';' :: rest -> Some(Symbol.Semicolon(start, start + 1u), rest)
+    |   ',' :: rest -> Some(Symbol.Comma(start, start + 1u), rest)
+    |   '.' :: rest -> Some(Symbol.Period(start, start + 1u), rest)
+    |   '(' :: rest -> Some(Symbol.LeftParenthesis(start, start + 1u), rest)
+    |   ')' :: rest -> Some(Symbol.RightParenthesis(start, start + 1u), rest)
+    |   '[' :: rest -> Some(Symbol.LeftSquareBracket(start, start + 1u), rest)
+    |   ']' :: rest -> Some(Symbol.RightSquareBracket(start, start + 1u), rest)
+    |   '{' :: rest -> Some(Symbol.LeftCurlyBracket(start, start + 1u), rest)
+    |   '}' :: rest -> Some(Symbol.RightCurlyBracket(start, start + 1u), rest)
+    |   '~' :: rest -> Some(Symbol.BitwiseInvert(start, start + 1u), rest)
+    |   '=' :: rest -> Some(Symbol.Assign(start, start + 1u), rest)
+    |   _ ->    Option.None
 
 (* Expression patterns  *)
 
