@@ -455,7 +455,7 @@ and  (|YieldExpression|_|) (stream : SymbolStream) : NodeTree option =
     | Symbol.Yield _ :: rest ->
         match rest with
         | StarExpression(ast, rest2) -> Some(AST.Yield(s, GetEndPosition rest2, ast), rest2)
-    | _ -> Some(AST.Empty, stream)
+    | _ -> Option.None
 
 and  (|Expression|) (stream : SymbolStream) : NodeTree =
     let s = GetStartPosition stream
