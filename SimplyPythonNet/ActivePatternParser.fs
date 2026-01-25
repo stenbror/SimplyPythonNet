@@ -79,6 +79,7 @@ type AST =
     | Or of uint * uint * AST * AST
     | NamedAssignment of uint * uint * AST * AST
     | ExpressionList of uint * uint * AST list
+    | StarNamedExpression of uint * uint * AST
     
 type SymbolStream = Symbol list
 
@@ -377,8 +378,17 @@ and  (|NamedExpression|) (stream : SymbolStream) : NodeTree =
             match rest with
             |   Expression(ast, rest2) -> AST.NamedAssignment(s, GetEndPosition rest2, AST.Name(s, e, t), ast), rest2
     |   Expression(ast, rest) -> ast, rest
-
     
+and  (|StarNamedExpression|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    match stream with
+    | Symbol.Multiply _ :: rest ->
+        match rest with
+        | BitwiseOr(ast, rest2) ->
+            AST.StarNamedExpression(s, GetStartPosition rest2, ast), rest2
+    |   NamedExpression(ast, rest) -> ast, rest
+
+
 
 and  (|Expression|) (stream : SymbolStream) : NodeTree =
     let s = GetStartPosition stream
