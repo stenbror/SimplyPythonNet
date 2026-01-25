@@ -1,5 +1,6 @@
 ﻿module SimplyPythonNet.ActivePatternParser
 
+
 type Symbol =
     | Name of uint * uint * string
     | Number of uint * uint * string
@@ -37,6 +38,11 @@ type Symbol =
     | Or of uint * uint
     | ColonEqual of uint * uint
     | Comma of uint * uint
+    | Yield of uint * uint
+    | From of uint * uint
+    | If of uint * uint
+    | Else of uint * uint
+    | Lambda of uint * uint
     
 type AST =
     | Empty
@@ -83,6 +89,9 @@ type AST =
     | StarNamedExpressionList of uint * uint * AST list
     | StarExpression of uint * uint * AST
     | StarExpressionList of uint * uint * AST list
+    | YieldFrom of uint * uint * AST
+    | Yield of uint * uint * AST
+    | Test of uint * uint * AST * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -118,19 +127,19 @@ let rec (|Atom|) (stream : SymbolStream) : NodeTree =
     |   _ -> failwith "Expecting an expression value!"
     
 and (|Strings|_|) (stream : SymbolStream) : NodeTree option =
-    let s = GetStartPosition stream
     let rec loop acc tokens =
         match tokens with
         | Symbol.String(_, _,  t) :: rest ->
             loop (t :: acc) rest
         | _ ->
             List.rev acc, tokens
-
-    let res, restFinal = loop [] stream
-    match res.Length with
-    | 0 -> Some(AST.Empty, restFinal)
-    | _ -> Some(AST.String(s, GetStartPosition restFinal, res), restFinal)
-      
+            
+    match stream with
+    |   Symbol.String(s, _, _) :: _ -> 
+            let res, restFinal = loop [] stream
+            Some(AST.String(s, GetStartPosition restFinal, res), restFinal)
+    |   _ -> Option.None
+              
 and (|Primary|) (stream: SymbolStream) : NodeTree =
     match stream with
     |   Atom(ast, rest2) -> ast, rest2
@@ -428,13 +437,32 @@ and  (|StarExpressions|) (stream : SymbolStream) : NodeTree =
             | 1 -> ast, restFinal
             | _ -> AST.StarExpressionList(s, GetEndPosition restFinal, expr), restFinal
 
-
+and  (|YieldExpression|_|) (stream : SymbolStream) : NodeTree option =
+    let s = GetStartPosition stream
+    match stream with
+    | Symbol.Yield _ :: Symbol.From _ :: rest ->
+        match rest with
+        | Expression(ast, rest2) -> Some(AST.YieldFrom(s, GetEndPosition rest2, ast), rest2)
+    | Symbol.Yield _ :: rest ->
+        match rest with
+        | StarExpression(ast, rest2) -> Some(AST.Yield(s, GetEndPosition rest2, ast), rest2)
+    | _ -> Some(AST.Empty, stream)
 
 and  (|Expression|) (stream : SymbolStream) : NodeTree =
     let s = GetStartPosition stream
     match stream with
-    //|   Lambda(ast, rest) -> ast, rest
-    |   Disjunction(ast, rest) -> ast, rest
+    |   LambdaDef(ast, rest) -> ast, rest
+    |   Disjunction(ast, rest) ->
+            match rest with
+            |   Symbol.If _ :: rest2 ->
+                    match rest2 with
+                    |   Disjunction(cond, rest3) ->
+                        match rest3 with
+                        |   Symbol.Else _ :: rest4 ->
+                            match rest4 with
+                            |   Expression(body, rest5) -> AST.Test(s, GetEndPosition rest5, ast, cond, body), rest5
+                        |   _ -> failwith "Expecting 'else' in expression"
+            |    _ -> ast, rest
     
 and  (|Expressions|) (stream : SymbolStream) : NodeTree =
     let s = GetStartPosition stream
@@ -449,6 +477,14 @@ and  (|Expressions|) (stream : SymbolStream) : NodeTree =
             match expr.Length with
             | 1 -> ast, restFinal
             | _ -> AST.ExpressionList(s, GetEndPosition restFinal, expr), restFinal
+            
+            
+and  (|LambdaDef|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Lambda _ :: rest ->
+            Some(AST.Empty, rest)
+    |   _ -> Option.None
+    
 
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
