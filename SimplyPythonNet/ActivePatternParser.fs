@@ -219,7 +219,7 @@ let (|ReservedKeywordOrLiteral|_|) (text: char list, start: uint) : (Symbol * ch
                     |   "while" -> Some(Symbol.While(start, start + 5u), rest2)
                     |   "with" -> Some(Symbol.With(start, start + 4u), rest2)
                     |   "yield" -> Some(Symbol.Yield(start, start + 5u), rest2)                  
-                    |   _ -> Some(Symbol.Name(start, start + uint keyword.Length, text.ToString()), rest2)
+                    |   _ -> Some(Symbol.Name(start, start + uint keyword.Length, keyword), rest2)
             |   _ -> Option.None
     |   _ -> Option.None
     
