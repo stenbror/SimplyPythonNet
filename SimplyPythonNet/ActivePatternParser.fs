@@ -66,7 +66,7 @@ type Symbol =
     | Elif of uint * uint
     | ShiftLeftAssign of uint * uint
     | ShiftRightAssign of uint * uint
-    | PowerAssignl of uint * uint
+    | PowerAssign of uint * uint
     | FloorDivideAssign of uint * uint
     | MatricesEqual of uint * uint
     | PlusEqual of uint * uint
@@ -227,7 +227,7 @@ let (|OperatorOrDelimiter|_|) (text: char list, start: uint) : (Symbol * char li
     match text with
     |   '<' :: '<' :: '=' :: rest -> Some(Symbol.ShiftLeftAssign(start, start + 3u), rest)
     |   '>' :: '>' :: '=' :: rest -> Some(Symbol.ShiftRightAssign(start, start + 3u), rest)
-    |   '*':: '*' :: '=' :: rest -> Some(Symbol.PowerAssignl(start, start + 3u), rest)
+    |   '*':: '*' :: '=' :: rest -> Some(Symbol.PowerAssign(start, start + 3u), rest)
     |   '/' :: '/' :: '=' :: rest -> Some(Symbol.FloorDivideAssign(start, start + 3u), rest)
     |   '.' :: '.' :: '.' :: rest -> Some(Symbol.Ellipsis(start, start + 3u), rest)
     |   '+' :: '=' :: rest -> Some(Symbol.PlusEqual(start, start + 2u), rest)

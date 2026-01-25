@@ -30,13 +30,173 @@ let ``Reserved keyword: True`` () =
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
     
+[<Fact>]
+let ``Reserved keyword: and`` () =
+    match "and" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.And(0u, 3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: as`` () =
+    match "as" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.As(0u, 2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: assert`` () =
+    match "assert" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Assert(0u, 6u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
 
+[<Fact>]
+let ``Reserved keyword: async`` () =
+    match "async" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Async(0u, 5u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: await`` () =
+    match "await" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Await(0u, 5u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: break`` () =
+    match "break" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Break(0u, 5u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: class`` () =
+    match "class" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Class(0u, 5u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: continue`` () =
+    match "continue" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Continue(0u, 8u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: del`` () =
+    match "del" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Del(0u, 3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: def`` () =
+    match "def" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Def(0u, 3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: elif`` () =
+    match "elif" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Elif(0u, 4u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: else`` () =
+    match "else" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Else(0u, 4u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
 
+[<Fact>]
+let ``Reserved keyword: except`` () =
+    match "except" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Except(0u, 6u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
 
+[<Fact>]
+let ``Reserved keyword: finally`` () =
+    match "finally" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Finally(0u, 7u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
 
-
-
-
+[<Fact>]
+let ``Reserved keyword: for`` () =
+    match "for" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.For(0u, 3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: from`` () =
+    match "from" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.From(0u, 4u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: global`` () =
+    match "global" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Global(0u, 6u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: if`` () =
+    match "if" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.If(0u, 2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: import`` () =
+    match "import" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Import(0u, 6u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: in`` () =
+    match "in" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.In(0u, 2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: is`` () =
+    match "is" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Is(0u, 2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
     
     
 [<Fact>]
@@ -48,12 +208,151 @@ let ``Literal name: __init__1`` () =
     |   _ -> Assert.True(false)
     
 [<Fact>]
+let ``Reserved keyword: lambda`` () =
+    match "lambda" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Lambda(0u, 6u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: nonlocal`` () =
+    match "nonlocal" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Nonlocal(0u, 7u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: not`` () =
+    match "not" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Not(0u, 3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: or`` () =
+    match "or" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Or(0u, 2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: pass`` () =
+    match "pass" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Pass(0u, 4u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: raise`` () =
+    match "raise" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Raise(0u, 5u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: return`` () =
+    match "return" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Return(0u, 6u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: try`` () =
+    match "try" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Try(0u, 3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: while`` () =
+    match "while" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.While(0u, 5u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: with`` () =
+    match "with" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.With(0u, 4u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Reserved keyword: yield`` () =
+    match "yield" |> Seq.toList, 0u  with
+    |   ReservedKeywordOrLiteral(text, rest) ->
+            Assert.Equal(Symbol.Yield(0u, 5u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
 let ``Reserved keyword: Not found`` () =
     match "56.78" |> Seq.toList, 0u  with
     |   ReservedKeywordOrLiteral _ ->
             Assert.True(false)
     |   _ -> Assert.True(true)
     
+(* Operator patterns unittests *)
+
+[<Fact>]
+let ``Operator: <<=`` () =
+    match "<<=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.ShiftLeftAssign(0u,3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: >>=`` () =
+    match ">>=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.ShiftRightAssign(0u,3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: **=`` () =
+    match "**=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.PowerAssign(0u,3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: //=`` () =
+    match "//=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.FloorDivideAssign(0u,3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: ...`` () =
+    match "..." |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Ellipsis(0u,3u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+    
+    
+[<Fact>]
+let ``Operator: Not found`` () =
+    match "56.78" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter _ ->
+            Assert.True(false)
+    |   _ -> Assert.True(true)
+
     
 (* Expression parser unittests *)
     
