@@ -81,6 +81,8 @@ type AST =
     | ExpressionList of uint * uint * AST list
     | StarNamedExpression of uint * uint * AST
     | StarNamedExpressionList of uint * uint * AST list
+    | StarExpression of uint * uint * AST
+    | StarExpressionList of uint * uint * AST list
     
 type SymbolStream = Symbol list
 
@@ -402,6 +404,29 @@ and  (|StarNamedExpressions|) (stream : SymbolStream) : NodeTree =
             match expr.Length with
             | 1 -> ast, restFinal
             | _ -> AST.StarNamedExpressionList(s, GetEndPosition restFinal, expr), restFinal
+            
+and  (|StarExpression|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    match stream with
+    | Symbol.Multiply _ :: rest ->
+        match rest with
+        | BitwiseOr(ast, rest2) ->
+            AST.StarExpression(s, GetStartPosition rest2, ast), rest2
+    |   Expression(ast, rest) -> ast, rest
+    
+and  (|StarExpressions|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    match stream with
+    |   StarExpression(ast, rest1) ->
+            let rec loop acc tokens =
+                match tokens with
+                |   Symbol.Comma _ :: Symbol.In _ :: _ -> List.rev acc, tokens.Tail
+                |   Symbol.Comma _ :: StarExpression(expr, rest2) -> loop (expr :: acc) rest2
+                |   _ -> List.rev acc, tokens
+            let expr, restFinal = loop [ast] rest1
+            match expr.Length with
+            | 1 -> ast, restFinal
+            | _ -> AST.StarExpressionList(s, GetEndPosition restFinal, expr), restFinal
 
 
 
