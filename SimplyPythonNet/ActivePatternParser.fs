@@ -124,6 +124,9 @@ let rec (|Atom|) (stream : SymbolStream) : NodeTree =
     |   Symbol.False(s, e) :: rest -> AST.False(s, e), rest
     |   Symbol.True(s, e) :: rest -> AST.True(s, e), rest
     |   Strings(s, e) -> s, e
+    |   TupleOrGeneratorExpression(s, e) -> s, e
+    |   ListOrListComp(s, e) -> s, e
+    |   DictionaryOrSet(s, e) -> s, e
     |   _ -> failwith "Expecting an expression value!"
     
 and (|Strings|_|) (stream : SymbolStream) : NodeTree option =
@@ -139,6 +142,12 @@ and (|Strings|_|) (stream : SymbolStream) : NodeTree option =
             let res, restFinal = loop [] stream
             Some(AST.String(s, GetStartPosition restFinal, res), restFinal)
     |   _ -> Option.None
+    
+and (|TupleOrGeneratorExpression|_|) (stream : SymbolStream) : NodeTree option = Option.None
+
+and (|ListOrListComp|_|) (stream : SymbolStream) : NodeTree option = Option.None
+
+and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option = Option.None
               
 and (|Primary|) (stream: SymbolStream) : NodeTree =
     match stream with
