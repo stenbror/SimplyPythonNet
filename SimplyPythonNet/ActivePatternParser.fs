@@ -113,6 +113,38 @@ let GetEndPosition (stream : SymbolStream) : uint =
     | Symbol.SemiColon(_, e) :: _ -> e
     | _ -> 0u
 
+(* Tokenizer patterns *)
+let (|LiteralStartCharacter|_|) (c: char) =
+    if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c = '_' then Some(c) else Option.None
+
+let (|LiteralNextCharacter|_|) (c: char) =
+    if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c = '_' || ('0' <= c && c <= '9') then Some(c) else Option.None
+    
+let (|PrefixToString|_|) (text: char list) : (Symbol * char list) option = Option.None
+
+let (|ReservedKeywordOrLiteral|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    let rec loop acc rest =
+        match rest with
+        |   LiteralNextCharacter(c) :: rest2 -> loop (c :: acc) rest2
+        |   _ ->
+            match acc with
+            |   [] -> Option.None
+            |   letters -> Some(letters |> List.rev |> System.String.Concat, rest)
+    
+    match text with
+    |   PrefixToString(symbol, rest) -> Some(symbol, rest)
+    |   LiteralStartCharacter(c) :: rest ->
+            match loop [] text with
+            |   Some(keyword, rest2) ->
+                    match keyword with
+                    |   "False" -> Some(Symbol.False(start, start + 5u), rest2)
+                    |   "True" -> Some(Symbol.True(start, start + 4u), rest2)
+                    |   "None" -> Some(Symbol.None(start, start + 4u), rest2)
+                    
+                    |   _ -> Some(Symbol.Name(start, start + uint keyword.Length, text.ToString()), rest2)
+            |   _ -> Option.None
+    |   _ -> Option.None
+
 (* Expression patterns  *)
 
 let rec (|Atom|) (stream : SymbolStream) : NodeTree =
