@@ -482,6 +482,30 @@ let ``Operator: ^`` () =
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
     
+[<Fact>]
+let ``Operator: ~`` () =
+    match "~" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.BitwiseInvert(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: <`` () =
+    match "<" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Less(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: >`` () =
+    match ">" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Greater(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)   
+    
     
 [<Fact>]
 let ``Operator: Not found`` () =

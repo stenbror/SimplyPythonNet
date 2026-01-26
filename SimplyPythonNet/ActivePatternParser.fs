@@ -269,6 +269,8 @@ let (|OperatorOrDelimiter|_|) (text: char list, start: uint) : (Symbol * char li
     |   '}' :: rest -> Some(Symbol.RightCurlyBracket(start, start + 1u), rest)
     |   '~' :: rest -> Some(Symbol.BitwiseInvert(start, start + 1u), rest)
     |   '=' :: rest -> Some(Symbol.Assign(start, start + 1u), rest)
+    |   '<' :: rest -> Some(Symbol.Less(start, start + 1u), rest)
+    |   '>' :: rest -> Some(Symbol.Greater(start, start + 1u), rest)
     |   _ ->    Option.None
 
 (* Expression patterns  *)
