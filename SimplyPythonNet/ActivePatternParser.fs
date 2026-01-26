@@ -79,7 +79,6 @@ type Symbol =
     | BitwiseXorEqual of uint * uint
     | Arrow of uint * uint
     | Colon of uint * uint
-    | Semicolon of uint * uint
     | Period of uint * uint
     | LeftParenthesis of uint * uint
     | RightParenthesis of uint * uint
@@ -258,7 +257,7 @@ let (|OperatorOrDelimiter|_|) (text: char list, start: uint) : (Symbol * char li
     |   '@' :: rest -> Some(Symbol.Matrices(start, start + 1u), rest)
     |   '!' :: rest -> Some(Symbol.Not(start, start + 1u), rest)
     |   ':' :: rest -> Some(Symbol.Colon(start, start + 1u), rest)
-    |   ';' :: rest -> Some(Symbol.Semicolon(start, start + 1u), rest)
+    |   ';' :: rest -> Some(Symbol.SemiColon(start, start + 1u), rest)
     |   ',' :: rest -> Some(Symbol.Comma(start, start + 1u), rest)
     |   '.' :: rest -> Some(Symbol.Period(start, start + 1u), rest)
     |   '(' :: rest -> Some(Symbol.LeftParenthesis(start, start + 1u), rest)

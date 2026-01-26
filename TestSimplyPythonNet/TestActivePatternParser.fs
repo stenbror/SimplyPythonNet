@@ -552,6 +552,46 @@ let ``Operator: }`` () =
     |   OperatorOrDelimiter(text, rest) ->
             Assert.Equal(Symbol.RightCurlyBracket(0u,1u), text)
             Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: ,`` () =
+    match "," |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Comma(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: ;`` () =
+    match ";" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.SemiColon(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: !`` () =
+    match "!" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Not(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: :`` () =
+    match ":" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Colon(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: =`` () =
+    match "=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Assign(0u,1u), text)
+            Assert.Equivalent([], rest)
     |   _ -> Assert.True(false) 
     
     
