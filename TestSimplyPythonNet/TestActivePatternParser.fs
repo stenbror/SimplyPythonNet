@@ -1,4 +1,6 @@
-﻿module TestSimplyPythonNet.TestActivePatternParser
+﻿
+
+module TestSimplyPythonNet.TestActivePatternParser
 
 open Xunit
 open SimplyPythonNet.ActivePatternParser
@@ -384,6 +386,101 @@ let ``Operator: %=`` () =
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
     
+[<Fact>]
+let ``Operator: &=`` () =
+    match "&=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.BitwiseAndEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: |=`` () =
+    match "|=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.BitwiseOrEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: ^=`` () =
+    match "^=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.BitwiseXorEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: Matrice=`` () =
+    match "@=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.MatricesEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: :=`` () =
+    match ":=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.ColonEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: ->`` () =
+    match "->" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Arrow(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator:==`` () =
+    match "==" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Equal(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: **`` () =
+    match "**" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Power(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: //`` () =
+    match "//" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.FloorDivide(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: &`` () =
+    match "&" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.BitwiseAnd(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: |`` () =
+    match "|" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.BitwiseOr(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: ^`` () =
+    match "^" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.BitwiseXor(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
     
     
 [<Fact>]
