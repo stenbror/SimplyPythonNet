@@ -504,7 +504,55 @@ let ``Operator: >`` () =
     |   OperatorOrDelimiter(text, rest) ->
             Assert.Equal(Symbol.Greater(0u,1u), text)
             Assert.Equivalent([], rest)
-    |   _ -> Assert.True(false)   
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: (`` () =
+    match "(" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.LeftParenthesis(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: )`` () =
+    match ")" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.RightParenthesis(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: [`` () =
+    match "[" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.LeftSquareBracket(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: ]`` () =
+    match "]" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.RightSquareBracket(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: {`` () =
+    match "{" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.LeftCurlyBracket(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: }`` () =
+    match "}" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.RightCurlyBracket(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false) 
     
     
 [<Fact>]
