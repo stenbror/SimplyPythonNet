@@ -352,6 +352,38 @@ let ``Operator: +=`` () =
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
     
+[<Fact>]
+let ``Operator: -=`` () =
+    match "-=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.MinusEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: *=`` () =
+    match "*=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.MultiplyEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: /=`` () =
+    match "/=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.DivideEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: %=`` () =
+    match "%=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.ModuloEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
     
     
 [<Fact>]
