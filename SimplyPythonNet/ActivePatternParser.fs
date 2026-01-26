@@ -166,7 +166,30 @@ let (|LiteralStartCharacter|_|) (c: char) =
 let (|LiteralNextCharacter|_|) (c: char) =
     if ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c = '_' || ('0' <= c && c <= '9') then Some(c) else Option.None
     
-let (|PrefixToString|_|) (text: char list) : (Symbol * char list) option = Option.None
+let (|PrefixToString|_|) (text: char list) : (Symbol * char list) option =
+    match text with
+    |   'r' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'r' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'R' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'R' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'b' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'b' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'B' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'B' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'f' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'f' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'F' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'F' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   't' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   't' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'T' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'T' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'u' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'u' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'U' :: '\'' :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   'U' :: '"'  :: _ -> Some(Symbol.None(0u, 0u), text)
+    |   _ ->
+            Option.None
 
 let (|ReservedKeywordOrLiteral|_|) (text: char list, start: uint) : (Symbol * char list) option =
     let rec loop acc rest =
