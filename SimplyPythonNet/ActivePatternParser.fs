@@ -343,6 +343,13 @@ let (|OperatorOrDelimiter|_|) (text: char list, start: uint) : (Symbol * char li
     |   '>' :: rest -> Some(Symbol.Greater(start, start + 1u), rest)
     |   _ ->    Option.None
     
+let (|SingleOrTripleString|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    match text, start with
+    |   _ -> Option.None
+    
+let (|Number|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    match text, start with
+    |   _ -> Option.None
     
     
 let Tokenize(text: char list) : SymbolStream =
@@ -366,6 +373,12 @@ let Tokenize(text: char list) : SymbolStream =
                 elements <- s :: elements
                 source <- r
         |   ReservedKeywordOrLiteral(s, r) ->
+                elements <- s :: elements
+                source <- r
+        |   Number(s, r) ->
+                elements <- s :: elements
+                source <- r
+        |   SingleOrTripleString(s, r) ->
                 elements <- s :: elements
                 source <- r
         |   _ -> failwith "Unknown symbol!"
