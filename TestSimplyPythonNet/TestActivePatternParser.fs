@@ -592,9 +592,64 @@ let ``Operator: =`` () =
     |   OperatorOrDelimiter(text, rest) ->
             Assert.Equal(Symbol.Assign(0u,1u), text)
             Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: +`` () =
+    match "+" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Plus(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: -`` () =
+    match "-" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Minus(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: *`` () =
+    match "*" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Multiply(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: /`` () =
+    match "/" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Divide(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: %`` () =
+    match "%" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Modulo(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: .`` () =
+    match "." |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Period(0u,1u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Operator: matrices`` () =
+    match "@" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.Matrices(0u,1u), text)
+            Assert.Equivalent([], rest)
     |   _ -> Assert.True(false) 
-    
-    
+     
 [<Fact>]
 let ``Operator: Not found`` () =
     match "56.78" |> Seq.toList, 0u  with
