@@ -344,6 +344,14 @@ let ``Operator: ...`` () =
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
     
+[<Fact>]
+let ``Operator: +=`` () =
+    match "+=" |> Seq.toList, 0u  with
+    |   OperatorOrDelimiter(text, rest) ->
+            Assert.Equal(Symbol.PlusEqual(0u,2u), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
     
     
 [<Fact>]
