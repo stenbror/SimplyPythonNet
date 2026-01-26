@@ -342,6 +342,35 @@ let (|OperatorOrDelimiter|_|) (text: char list, start: uint) : (Symbol * char li
     |   '<' :: rest -> Some(Symbol.Less(start, start + 1u), rest)
     |   '>' :: rest -> Some(Symbol.Greater(start, start + 1u), rest)
     |   _ ->    Option.None
+    
+    
+    
+let Tokenize(text: char list) : SymbolStream =
+    let size = uint(text.Length)
+    let mutable elements : SymbolStream = []
+    let mutable source = text
+    
+    while source.Length > 0 do
+        
+        while match source with
+              | '\t' :: rest | ' ' :: rest ->
+                    source <- rest
+                    true
+              | _ -> false
+              do ()
+        
+        let mutable pos = size - uint(source.Length)
+           
+        match source, pos with
+        |   OperatorOrDelimiter(s, r) ->
+                elements <- s :: elements
+                source <- r
+        |   ReservedKeywordOrLiteral(s, r) ->
+                elements <- s :: elements
+                source <- r
+        |   _ -> failwith "Unknown symbol!"
+    
+    List.rev elements
 
 (* Expression patterns  *)
 
