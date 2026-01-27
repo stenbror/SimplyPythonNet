@@ -467,7 +467,86 @@ let (|BinaryNumber|_|) (text: char list, start: uint) : (Symbol * char list) opt
              Some(Symbol.Number(start, start + uint(number.Length), number), restFinal)
     |   _ -> Option.None
 
-
+let (|NonZeroDigit|_|) (text: char list) : (char * char list) option =
+    match text with
+    |   '1' :: rest -> Some('1', rest)
+    |   '2' :: rest -> Some('2', rest)
+    |   '3' :: rest -> Some('3', rest)
+    |   '4' :: rest -> Some('4', rest)
+    |   '5' :: rest -> Some('5', rest)
+    |   '6' :: rest -> Some('6', rest)
+    |   '7' :: rest -> Some('7', rest)
+    |   '8' :: rest -> Some('8', rest)
+    |   '9' :: rest -> Some('9', rest)
+    |   _ -> Option.None
+    
+let (|Digit|_|) (text: char list) : (char * char list) option =
+    match text with
+    |   '0' :: rest -> Some('0', rest)
+    |   NonZeroDigit(t, rest) -> Some(t, rest)
+    |   _ -> Option.None
+    
+let (|Imaginary|_|) (text: char list) : (char list) option =
+    match text with
+    |   'j' :: rest -> Some(rest)
+    |   'J' :: rest -> Some(rest)
+    |   _ -> Option.None
+    
+let (|Exponent|_|) (text: char list) : (char list) option =
+    match text with
+    |   'e' :: rest -> Some(rest)
+    |   'E' :: rest -> Some(rest)
+    |   _ -> Option.None
+    
+let (|Signed|_|) (text: char list) : (char * char list) option =
+    match text with
+    |   '+' :: rest -> Some('+', rest)
+    |   '-' :: rest -> Some('-', rest)
+    |   _ -> Option.None
+    
+let (|ExponentPart|_|) (text: char list) : (string * char list) option =
+    let rec loop acc tokens =
+        match tokens with
+        | Digit(t, rest)  ->
+            match rest with
+            |   '_' :: rest2 ->
+                    let mutable acc2 = t :: acc
+                    acc2 <- '_' :: acc2
+                    loop acc2 rest2
+            | _ ->
+                    loop (t :: acc) rest
+        |   '_' :: _ -> failwith "Unexpected underscore!"
+        | _ ->
+            acc, tokens
+            
+    match text with
+    |   Exponent(r)  ->
+            match r with
+            |   Signed(c1, r2) ->
+                    match r2 with
+                    |   Digit( _, _) ->
+                            let mutable result, r3 = loop [ c1; 'e'; ] r2
+                            match r3 with
+                            |   Imaginary(r4) ->
+                                    result <- 'j' :: result
+                                    let result2 = List.rev result
+                                    Some( result2 |> System.String.Concat , r4 )
+                            |   _ ->
+                                let result2 = List.rev result
+                                Some( result2 |> System.String.Concat , r3 )
+                    |   _ -> failwith "Expecting digit after exponent!"   
+            |    Digit( _, _) ->
+                            let mutable result, r3 = loop [ 'e'; ] r
+                            match r3 with
+                            |   Imaginary(r4) ->
+                                    result <- 'j' :: result
+                                    let result2 = List.rev result
+                                    Some( result2 |> System.String.Concat , r4 )
+                            |   _ ->
+                                let result2 = List.rev result
+                                Some( result2 |> System.String.Concat , r3 )
+            |   _ -> failwith "Expecting digit after exponent!"   
+    |   _ -> Option.None
 
     
 let (|Number|_|) (text: char list, start: uint) : (Symbol * char list) option =

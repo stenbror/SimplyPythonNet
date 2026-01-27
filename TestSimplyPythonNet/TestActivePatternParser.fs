@@ -705,7 +705,31 @@ let ``Number: binary numbe with _`` () =
     |   Number(text, rest) ->
             Assert.Equal(Symbol.Number(0u,14u, "0b_1_1_0_0_1_1"), text)
             Assert.Equivalent([], rest)
-    |   _ -> Assert.True(false) 
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Number: exponent simple`` () =
+    match "e2_45" |> Seq.toList with
+    |   ExponentPart(text, rest) ->
+            Assert.Equal("e2_45", text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Number: exponent signed`` () =
+    match "e-2_45" |> Seq.toList with
+    |   ExponentPart(text, rest) ->
+            Assert.Equal("e-2_45", text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Number: exponent signed and imaginary`` () =
+    match "e-2_45J" |> Seq.toList with
+    |   ExponentPart(text, rest) ->
+            Assert.Equal("e-2_45j", text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
     
 (* Expression parser unittests *)
        
