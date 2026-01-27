@@ -380,6 +380,7 @@ let (|HexNumber|_|) (text: char list, start: uint) : (Symbol * char list) option
                     loop acc2 rest2
             | _ ->
                     loop (t :: acc) rest
+        |   '_' :: _ -> failwith "Unexpected underscore!"
         | _ ->
             List.rev acc, tokens
             
