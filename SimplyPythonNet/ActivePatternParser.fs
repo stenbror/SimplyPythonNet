@@ -347,8 +347,16 @@ let (|SingleOrTripleString|_|) (text: char list, start: uint) : (Symbol * char l
     match text, start with
     |   _ -> Option.None
     
-let (|Number|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    
+
+let (|HexNumber|_|) (text: char list, start: uint) : (Symbol * char list) option =
     match text, start with
+    |   '0' :: 'x' :: rest, _ | '0' :: 'X' :: rest, _ -> Some(Symbol.None(0u, 0u), rest)
+    |   _ -> Option.None
+    
+let (|Number|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    match (text, start) with
+    |   HexNumber(s, r) -> Some(s, r)
     |   _ -> Option.None
     
     
