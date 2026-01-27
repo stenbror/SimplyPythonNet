@@ -395,9 +395,86 @@ let (|HexNumber|_|) (text: char list, start: uint) : (Symbol * char list) option
              Some(Symbol.Number(start, start + uint(number.Length), number), restFinal)
     |   _ -> Option.None
     
+let (|OctetDigit|_|) (text: char list) : (char * char list) option =
+    match text with
+    |   '0' :: rest -> Some('0', rest)
+    |   '1' :: rest -> Some('1', rest)
+    |   '2' :: rest -> Some('2', rest)
+    |   '3' :: rest -> Some('3', rest)
+    |   '4' :: rest -> Some('4', rest)
+    |   '5' :: rest -> Some('5', rest)
+    |   '6' :: rest -> Some('6', rest)
+    |   '7' :: rest -> Some('7', rest)
+    |   _ -> Option.None
+    
+let (|OctetNumber|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    let rec loop acc tokens =
+        match tokens with
+        | OctetDigit(t, rest)  ->
+            match rest with
+            |   '_' :: rest2 ->
+                    let mutable acc2 = t :: acc
+                    acc2 <- '_' :: acc2
+                    loop acc2 rest2
+            | _ ->
+                    loop (t :: acc) rest
+        |   '8' :: _ |   '9' :: _ -> failwith "Expecting octet number!"
+        |   '_' :: _ -> failwith "Unexpected underscore!"
+        | _ ->
+            List.rev acc, tokens
+            
+    match text, start with
+    |   '0' :: 'o' :: '_' ::  rest, _ | '0' :: 'O' :: '_' ::  rest, _ ->
+             let res, restFinal = loop [ '_'; 'o'; '0'; ] rest
+             let number = System.String.Concat res
+             Some(Symbol.Number(start, start + uint(number.Length), number), restFinal)
+    |   '0' :: 'o' :: rest, _ | '0' :: 'O' :: rest, _ ->
+             let res, restFinal = loop [ 'o'; '0'; ] rest
+             let number = System.String.Concat res
+             Some(Symbol.Number(start, start + uint(number.Length), number), restFinal)
+    |   _ -> Option.None
+    
+let (|BinaryDigit|_|) (text: char list) : (char * char list) option =
+    match text with
+    |   '0' :: rest -> Some('0', rest)
+    |   '1' :: rest -> Some('1', rest)
+    |   _ -> Option.None
+
+let (|BinaryNumber|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    let rec loop acc tokens =
+        match tokens with
+        | BinaryDigit(t, rest)  ->
+            match rest with
+            |   '_' :: rest2 ->
+                    let mutable acc2 = t :: acc
+                    acc2 <- '_' :: acc2
+                    loop acc2 rest2
+            | _ ->
+                    loop (t :: acc) rest
+        |  '2' :: _ | '3' :: _ | '4' :: _ | '5' :: _ | '6' :: _ | '7' :: _ | '8' :: _ |   '9' :: _ -> failwith "Expecting binary number!"
+        |   '_' :: _ -> failwith "Unexpected underscore!"
+        | _ ->
+            List.rev acc, tokens
+            
+    match text, start with
+    |   '0' :: 'b' :: '_' ::  rest, _ | '0' :: 'B' :: '_' ::  rest, _ ->
+             let res, restFinal = loop [ '_'; 'b'; '0'; ] rest
+             let number = System.String.Concat res
+             Some(Symbol.Number(start, start + uint(number.Length), number), restFinal)
+    |   '0' :: 'b' :: rest, _ | '0' :: 'B' :: rest, _ ->
+             let res, restFinal = loop [ 'b'; '0'; ] rest
+             let number = System.String.Concat res
+             Some(Symbol.Number(start, start + uint(number.Length), number), restFinal)
+    |   _ -> Option.None
+
+
+
+    
 let (|Number|_|) (text: char list, start: uint) : (Symbol * char list) option =
     match (text, start) with
     |   HexNumber(s, r) -> Some(s, r)
+    |   OctetNumber(s, r) -> Some(s, r)
+    |   BinaryNumber(s, r) -> Some(s, r)
     |   _ -> Option.None
     
     

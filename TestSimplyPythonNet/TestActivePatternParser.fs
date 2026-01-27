@@ -673,6 +673,38 @@ let ``Number: hex numbe with _`` () =
     |   Number(text, rest) ->
             Assert.Equal(Symbol.Number(0u,10u, "0x_ff_7b_e"), text)
             Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Number: octet number`` () =
+    match "0o7711" |> Seq.toList, 0u  with
+    |   Number(text, rest) ->
+            Assert.Equal(Symbol.Number(0u,6u, "0o7711"), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Number: octet number with _`` () =
+    match "0O_77_1_1" |> Seq.toList, 0u  with
+    |   Number(text, rest) ->
+            Assert.Equal(Symbol.Number(0u,9u, "0o_77_1_1"), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Number: binary number`` () =
+    match "0b110011" |> Seq.toList, 0u  with
+    |   Number(text, rest) ->
+            Assert.Equal(Symbol.Number(0u,8u, "0b110011"), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Number: binary numbe with _`` () =
+    match "0B_1_1_0_0_1_1" |> Seq.toList, 0u  with
+    |   Number(text, rest) ->
+            Assert.Equal(Symbol.Number(0u,14u, "0b_1_1_0_0_1_1"), text)
+            Assert.Equivalent([], rest)
     |   _ -> Assert.True(false) 
     
 (* Expression parser unittests *)
