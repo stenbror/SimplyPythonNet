@@ -369,13 +369,13 @@ let Tokenize(text: char list) : SymbolStream =
         let mutable pos = size - uint(source.Length)
            
         match source, pos with
+        |   Number(s, r) ->
+                elements <- s :: elements
+                source <- r
         |   OperatorOrDelimiter(s, r) ->
                 elements <- s :: elements
                 source <- r
         |   ReservedKeywordOrLiteral(s, r) ->
-                elements <- s :: elements
-                source <- r
-        |   Number(s, r) ->
                 elements <- s :: elements
                 source <- r
         |   SingleOrTripleString(s, r) ->
