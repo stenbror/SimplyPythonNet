@@ -348,10 +348,50 @@ let (|SingleOrTripleString|_|) (text: char list, start: uint) : (Symbol * char l
     |   _ -> Option.None
     
     
-
+    
+let (|HexDigit|_|) (text: char list) : (char * char list) option =
+    match text with
+    |   '0' :: rest -> Some('0', rest)
+    |   '1' :: rest -> Some('1', rest)
+    |   '2' :: rest -> Some('2', rest)
+    |   '3' :: rest -> Some('3', rest)
+    |   '4' :: rest -> Some('4', rest)
+    |   '5' :: rest -> Some('5', rest)
+    |   '6' :: rest -> Some('6', rest)
+    |   '7' :: rest -> Some('7', rest)
+    |   '8' :: rest -> Some('8', rest)
+    |   '9' :: rest -> Some('9', rest)
+    |   'a' :: rest | 'A' :: rest -> Some('a', rest)
+    |   'b' :: rest | 'B' :: rest -> Some('b', rest)
+    |   'c' :: rest | 'C' :: rest -> Some('c', rest)
+    |   'd' :: rest | 'D' :: rest -> Some('d', rest)
+    |   'e' :: rest | 'E' :: rest -> Some('e', rest)
+    |   'f' :: rest | 'F' :: rest -> Some('f', rest)
+    |   _ -> Option.None
+    
 let (|HexNumber|_|) (text: char list, start: uint) : (Symbol * char list) option =
+    let rec loop acc tokens =
+        match tokens with
+        | HexDigit(t, rest)  ->
+            match rest with
+            |   '_' :: rest2 ->
+                    let mutable acc2 = t :: acc
+                    acc2 <- '_' :: acc2
+                    loop acc2 rest2
+            | _ ->
+                    loop (t :: acc) rest
+        | _ ->
+            List.rev acc, tokens
+            
     match text, start with
-    |   '0' :: 'x' :: rest, _ | '0' :: 'X' :: rest, _ -> Some(Symbol.None(0u, 0u), rest)
+    |   '0' :: 'x' :: '_' ::  rest, _ | '0' :: 'X' :: '_' ::  rest, _ ->
+             let res, restFinal = loop [ '_'; 'x'; '0'; ] rest
+             let number = System.String.Concat res
+             Some(Symbol.Number(start, start + uint(number.Length), number), restFinal)
+    |   '0' :: 'x' :: rest, _ | '0' :: 'X' :: rest, _ ->
+             let res, restFinal = loop [ 'x'; '0'; ] rest
+             let number = System.String.Concat res
+             Some(Symbol.Number(start, start + uint(number.Length), number), restFinal)
     |   _ -> Option.None
     
 let (|Number|_|) (text: char list, start: uint) : (Symbol * char list) option =

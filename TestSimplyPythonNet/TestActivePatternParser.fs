@@ -656,7 +656,24 @@ let ``Operator: Not found`` () =
     |   OperatorOrDelimiter _ ->
             Assert.True(false)
     |   _ -> Assert.True(true)
+    
+(* Numbers *)
 
+[<Fact>]
+let ``Number: hex number`` () =
+    match "0x7fb18" |> Seq.toList, 0u  with
+    |   Number(text, rest) ->
+            Assert.Equal(Symbol.Number(0u,7u, "0x7fb18"), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false)
+    
+[<Fact>]
+let ``Number: hex numbe with _`` () =
+    match "0X_FF_7b_e" |> Seq.toList, 0u  with
+    |   Number(text, rest) ->
+            Assert.Equal(Symbol.Number(0u,10u, "0x_ff_7b_e"), text)
+            Assert.Equivalent([], rest)
+    |   _ -> Assert.True(false) 
     
 (* Expression parser unittests *)
        
