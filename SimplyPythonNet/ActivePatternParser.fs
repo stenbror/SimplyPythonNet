@@ -549,10 +549,55 @@ let (|ExponentPart|_|) (text: char list) : (string * char list) option =
     |   _ -> Option.None
     
 let (|NumberStartingWithZero|_|) (text: char list, pos: uint) : (Symbol * char list) option =
+    let rec loop acc tokens =
+        match tokens with
+        | Digit(t, rest)  ->
+            match rest with
+            |   '_' :: rest2 ->
+                    let mutable acc2 = t :: acc
+                    acc2 <- '_' :: acc2
+                    loop acc2 rest2
+            | _ ->
+                    loop (t :: acc) rest
+        |   '_' :: _ -> failwith "Unexpected underscore!"
+        | _ ->
+            acc, tokens
+            
     Option.None
     
 let (|NumberStartingWithNonZero|_|) (text: char list, pos: uint) : (Symbol * char list) option =
-    Option.None
+    let rec loop acc tokens =
+        match tokens with
+        | Digit(t, rest)  ->
+            match rest with
+            |   '_' :: rest2 ->
+                    let mutable acc2 = t :: acc
+                    acc2 <- '_' :: acc2
+                    loop acc2 rest2
+            | _ ->
+                    loop (t :: acc) rest
+        |   '_' :: _ -> failwith "Unexpected underscore!"
+        | _ ->
+            acc, tokens
+    
+    match text with
+    |   NonZeroDigit _ ->
+            let result, r2 = loop [] text
+            let mutable text_result = List.rev result |> System.String.Concat
+            let mutable final_rest = r2
+            
+            match final_rest with
+            |   ExponentPart(s, r3) ->
+                    text_result <- text_result + s
+                    final_rest <- r3
+            |   Imaginary(r3) ->
+                    text_result <- text_result + "j"
+                    final_rest <- r3
+            |   '.' :: _ -> failwith "Unexpected '.'!"
+            |   _ -> ()
+        
+            Some(Symbol.Number(pos, pos + uint(text_result.Length), text_result), final_rest)
+    |   _ ->    Option.None
     
 let (|NumberStartingWithPeriod|_|) (text: char list, pos: uint) : (Symbol * char list) option =
     let rec loop acc tokens =
