@@ -593,7 +593,29 @@ let (|NumberStartingWithNonZero|_|) (text: char list, pos: uint) : (Symbol * cha
             |   Imaginary(r3) ->
                     text_result <- text_result + "j"
                     final_rest <- r3
-            |   '.' :: _ -> failwith "Unexpected '.'!"
+            |   '.' :: r ->
+                    let mutable start_list = [ '.' ]
+                    
+                    match r with
+                    |   '_' :: rest2 ->
+                            final_rest <- rest2
+                            start_list <- '_' :: start_list
+                    |   _ ->
+                            final_rest <- r
+                    
+                    let result, r2 = loop start_list final_rest
+                          
+                    text_result <- text_result + (List.rev result |> System.String.Concat)
+                    final_rest <- r2
+                    match r2 with
+                    |   ExponentPart(s, r3) ->
+                            text_result <- text_result + s
+                            final_rest <- r3
+                    |   Imaginary(r3) ->
+                            text_result <- text_result + "j"
+                            final_rest <- r3
+                    |   _ ->
+                            final_rest <- r2       
             |   _ -> ()
         
             Some(Symbol.Number(pos, pos + uint(text_result.Length), text_result), final_rest)
