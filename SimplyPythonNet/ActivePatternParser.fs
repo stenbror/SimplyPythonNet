@@ -555,7 +555,47 @@ let (|NumberStartingWithNonZero|_|) (text: char list, pos: uint) : (Symbol * cha
     Option.None
     
 let (|NumberStartingWithPeriod|_|) (text: char list, pos: uint) : (Symbol * char list) option =
-    Option.None
+    let rec loop acc tokens =
+        match tokens with
+        | Digit(t, rest)  ->
+            match rest with
+            |   '_' :: rest2 ->
+                    let mutable acc2 = t :: acc
+                    acc2 <- '_' :: acc2
+                    loop acc2 rest2
+            | _ ->
+                    loop (t :: acc) rest
+        |   '_' :: _ -> failwith "Unexpected underscore!"
+        | _ ->
+            acc, tokens
+            
+    match text with
+    |   '.' :: Digit(c, r) ->
+            let mutable restx = r
+            let mutable start_list = [ c; '.' ]
+            match r with
+            |   '_' :: rest2 ->
+                    restx <- rest2
+                    start_list <- '_' :: start_list
+            |   _ ->
+                    restx <- r
+            
+            let result, r2 = loop start_list restx
+                  
+            let mutable text_result = List.rev result |> System.String.Concat
+            let mutable final_rest = r2
+            match r2 with
+            |   ExponentPart(s, r3) ->
+                    text_result <- text_result + s
+                    final_rest <- r3
+            |   Imaginary(r3) ->
+                    text_result <- text_result + "j"
+                    final_rest <- r3
+            |   _ ->
+                    final_rest <- r2
+            
+            Some(Symbol.Number(pos, pos + uint(text_result.Length), text_result), final_rest)
+    |   _ -> Option.None
 
 let (|Number|_|) (text: char list, start: uint) : (Symbol * char list) option =
     match (text, start) with

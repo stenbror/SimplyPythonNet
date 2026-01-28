@@ -731,6 +731,26 @@ let ``Number: exponent signed and imaginary`` () =
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
     
+[<Fact>]                                                                                
+let ``Tokenizer: Number starting with period simple`` () =                                  
+    let result = ".5" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 2u, ".5"), []), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: Number starting with period simple with _`` () =                                  
+    let result = ".5_1" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 4u, ".5_1"), []), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: Number starting with period imaginary with _`` () =                                  
+    let result = ".5_1_1_J" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 8u, ".5_1_1_j"), []), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: Number starting with period exponent and imaginary with _`` () =                                  
+    let result = ".5_1_1_e-3_4J" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 13u, ".5_1_1_e-3_4j"), []), result)  
+    
 (* Expression parser unittests *)
        
 [<Fact>]                                                                                
