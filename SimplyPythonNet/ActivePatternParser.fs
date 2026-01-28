@@ -612,6 +612,7 @@ let Tokenize(text: char list) : SymbolStream =
     let size = uint(text.Length)
     let mutable elements : SymbolStream = []
     let mutable source = text
+    let mutable parenthesis_stack = []
     
     while source.Length > 0 do
         
@@ -631,6 +632,23 @@ let Tokenize(text: char list) : SymbolStream =
         |   OperatorOrDelimiter(s, r) ->
                 elements <- s :: elements
                 source <- r
+                match s with
+                | Symbol.LeftParenthesis _ -> parenthesis_stack <- '(' :: parenthesis_stack
+                | Symbol.RightParenthesis _ ->
+                    match parenthesis_stack with
+                    | '(' :: rest-> parenthesis_stack <- rest
+                    | _ -> failwith "Unexpected right parenthesis!"
+                | Symbol.LeftSquareBracket _ -> parenthesis_stack <- '[' :: parenthesis_stack
+                | Symbol.RightSquareBracket _ ->
+                    match parenthesis_stack with
+                    | '[' :: rest-> parenthesis_stack <- rest
+                    | _ -> failwith "Unexpected right bracket parenthesis!"
+                | Symbol.LeftCurlyBracket _ -> parenthesis_stack <- '{' :: parenthesis_stack
+                | Symbol.RightCurlyBracket _ ->
+                    match parenthesis_stack with
+                    | '{' :: rest-> parenthesis_stack <- rest
+                    | _ -> failwith "Unexpected right parenthesis!"
+                | _ -> ()
         |   ReservedKeywordOrLiteral(s, r) ->
                 elements <- s :: elements
                 source <- r
