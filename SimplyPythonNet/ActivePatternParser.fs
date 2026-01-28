@@ -547,13 +547,24 @@ let (|ExponentPart|_|) (text: char list) : (string * char list) option =
                                 Some( result2 |> System.String.Concat , r3 )
             |   _ -> failwith "Expecting digit after exponent!"   
     |   _ -> Option.None
-
     
+let (|NumberStartingWithZero|_|) (text: char list, pos: uint) : (Symbol * char list) option =
+    Option.None
+    
+let (|NumberStartingWithNonZero|_|) (text: char list, pos: uint) : (Symbol * char list) option =
+    Option.None
+    
+let (|NumberStartingWithPeriod|_|) (text: char list, pos: uint) : (Symbol * char list) option =
+    Option.None
+
 let (|Number|_|) (text: char list, start: uint) : (Symbol * char list) option =
     match (text, start) with
     |   HexNumber(s, r) -> Some(s, r)
     |   OctetNumber(s, r) -> Some(s, r)
     |   BinaryNumber(s, r) -> Some(s, r)
+    |   NumberStartingWithZero(s, r) -> Some(s, r)
+    |   NumberStartingWithNonZero(s, r) -> Some(s, r)
+    |   NumberStartingWithPeriod(s, r) -> Some(s, r)
     |   _ -> Option.None
     
     

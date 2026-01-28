@@ -710,7 +710,7 @@ let ``Number: binary numbe with _`` () =
 [<Fact>]
 let ``Number: exponent simple`` () =
     match "e2_45" |> Seq.toList with
-    |   ExponentPart(text, rest) ->
+    | ExponentPart(text, rest) ->
             Assert.Equal("e2_45", text)
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
@@ -718,7 +718,7 @@ let ``Number: exponent simple`` () =
 [<Fact>]
 let ``Number: exponent signed`` () =
     match "e-2_45" |> Seq.toList with
-    |   ExponentPart(text, rest) ->
+    | ExponentPart(text, rest) ->
             Assert.Equal("e-2_45", text)
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
@@ -726,7 +726,7 @@ let ``Number: exponent signed`` () =
 [<Fact>]
 let ``Number: exponent signed and imaginary`` () =
     match "e-2_45J" |> Seq.toList with
-    |   ExponentPart(text, rest) ->
+    | ExponentPart(text, rest) ->
             Assert.Equal("e-2_45j", text)
             Assert.Equivalent([], rest)
     |   _ -> Assert.True(false)
