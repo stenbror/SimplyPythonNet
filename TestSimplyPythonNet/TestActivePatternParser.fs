@@ -774,7 +774,32 @@ let ``Tokenizer: Number starting with nonzero imiginary`` () =
 [<Fact>]                                                                                
 let ``Tokenizer: Number starting with nonzero exponent imiginary`` () =                                  
     let result = "1_.0_3_5E+4_5_J" |> Seq.toList |> Tokenize |> Parse    
-    Assert.Equivalent((AST.Number(0u, 15u, "1_.0_3_5e+4_5_j"), []), result)  
+    Assert.Equivalent((AST.Number(0u, 15u, "1_.0_3_5e+4_5_j"), []), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: Number starting with zeros`` () =                                  
+    let result = "0_00" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 4u, "0_00"), []), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: Number starting with zeros AND Imaginary`` () =                                  
+    let result = "0_00J" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 5u, "0_00j"), []), result)  
+    
+[<Fact>]                                                                                
+let ``Tokenizer: Number starting with zeros and exponentImaginary`` () =                                  
+    let result = "0_00e-34J" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 9u, "0_00e-34j"), []), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: Number starting with zeros period and exponent Imaginary`` () =                                  
+    let result = "0_00.5_6e-34J" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 13u, "0_00.5_6e-34j"), []), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: Number 0.0j`` () =                                  
+    let result = "0.0j" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.Number(0u, 4u, "0.0j"), []), result)  
     
 (* Expression parser unittests *)
        

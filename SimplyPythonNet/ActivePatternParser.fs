@@ -563,7 +563,61 @@ let (|NumberStartingWithZero|_|) (text: char list, pos: uint) : (Symbol * char l
         | _ ->
             acc, tokens
             
-    Option.None
+    let rec loop_zero acc tokens =
+        match tokens with
+        | '0' :: rest  ->
+            match rest with
+            |   '_' :: rest2 ->
+                    let mutable acc2 = '0' :: acc
+                    acc2 <- '_' :: acc2
+                    loop_zero acc2 rest2
+            | _ ->
+                    loop_zero ('0' :: acc) rest
+        |   '_' :: _ -> acc, tokens
+        | _ ->
+            acc, tokens
+            
+    match text with
+    |   '0' :: _ ->
+            let result, r2 = loop_zero [] text (* Collect all leading zeros *)
+            let mutable text_result = List.rev result |> System.String.Concat
+            let mutable final_rest = r2
+            
+            match final_rest with
+            |   Digit _ -> failwith "Unexpected nonzero digit after leading zeros!"
+            |   ExponentPart(s, r3) ->
+                    text_result <- text_result + s
+                    final_rest <- r3
+            |   Imaginary(r3) ->
+                    text_result <- text_result + "j"
+                    final_rest <- r3
+            |   '.' :: r ->
+                    let mutable start_list = [ '.' ]
+                    
+                    match r with
+                    |   '_' :: rest2 ->
+                            final_rest <- rest2
+                            start_list <- '_' :: start_list
+                    |   _ ->
+                            final_rest <- r
+                    
+                    let result, r2 = loop start_list final_rest
+                          
+                    text_result <- text_result + (List.rev result |> System.String.Concat)
+                    final_rest <- r2
+                    match r2 with
+                    |   ExponentPart(s, r3) ->
+                            text_result <- text_result + s
+                            final_rest <- r3
+                    |   Imaginary(r3) ->
+                            text_result <- text_result + "j"
+                            final_rest <- r3
+                    |   _ ->
+                            final_rest <- r2       
+            |   _ -> ()
+        
+            Some(Symbol.Number(pos, pos + uint(text_result.Length), text_result), final_rest)
+    |   _ ->    Option.None
     
 let (|NumberStartingWithNonZero|_|) (text: char list, pos: uint) : (Symbol * char list) option =
     let rec loop acc tokens =
