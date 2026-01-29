@@ -373,9 +373,24 @@ let (|SingleQuoteString|_|) (text: char list) : (string * char list) option =
     |   _ -> Option.None
                 
 let (|MultiQuoteString|_|) (text: char list) : (string * char list) option =
+    let rec loop acc stop tokens =
+        match tokens with
+        |   '\'' :: '\'' :: '\'' :: rest when stop = tokens.Head -> "'''" + string(List.rev acc), rest
+        |   '"' :: '"' :: '"' :: rest when stop = tokens.Head -> "\"\"\"" + string(List.rev acc), rest
+        |   [] -> failwith "Unexpected end of string!"
+        |   c :: rest -> loop (c :: acc) stop rest
+        
     match text with
     |   '\'' :: '\'' :: '\'' :: '\'' :: '\'' :: '\'' :: rest    -> Some("''''''", rest) (* Empty string *)
     |   '"' :: '"' :: '"' :: '"' :: '"' :: '"' :: rest          ->Some("\"\"\"\"\"\"", rest) (* Empty string *)
+    |   '\'' :: '\'' :: '\'' :: rest                ->
+                let text2 , res = loop [ '\''; '\''; '\'' ] '\'' rest
+                let result_text = text2 |> System.String.Concat
+                Some(result_text, res)
+    |   '"' :: '"' :: '"' :: rest                 ->
+                let text2 , res = loop [ '"'; '"'; '"' ] '"' rest
+                let result_text = text2 |> System.String.Concat
+                Some(result_text, res)
     |   _ -> Option.None
 
 let (|SingleOrTripleString|_|) (text: char list, pos: uint) : (Symbol * char list) option =
