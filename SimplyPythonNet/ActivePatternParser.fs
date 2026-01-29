@@ -874,55 +874,115 @@ let Tokenize(text: char list) : SymbolStream =
     let mutable elements : SymbolStream = []
     let mutable source = text
     let mutable parenthesis_stack = []
+    let mutable at_bol = true
+    let mutable level = 0
+    let mutable blank_line = false
+    let mutable indent_stack : uint list = [ 0u; ]
+    let mutable pending = 0
+    let tab_size = 4u
     
+    (* Next line handling *)
     while source.Length > 0 do
         
-        while match source with
-              | '\t' :: rest | ' ' :: rest ->
+        if at_bol then
+            at_bol <- false
+            let mutable col = 0u
+            while source.Length > 0 &&
+                  match source with
+                  | ' ' :: rest -> source <- rest; col <- col + 1u; true
+                  | '\t' :: rest  -> source <- rest; col <- (col / tab_size + 1u) * tab_size; true
+                  | '\v' :: rest  -> source <- rest; col <- col + 1u; true
+                  | _ -> false
+                do ()
+                
+            (* Check for blank line *)
+            if col = 0u &&
+                   match source with | '\n' :: _  | '\r' :: _  | '#' :: _ -> true | _ -> false
+                   then ()  (* FIX LATER! *)
+                
+            (* Analyze indentation level *)
+            if blank_line = false && level = 0 then
+                if col > indent_stack.Head then
+                    indent_stack <- col :: indent_stack
+                    pending <- pending + 1
+                else if col < indent_stack.Head then
+                    while indent_stack.IsEmpty = false && col < indent_stack.Head do
+                        pending <- pending - 1
+                        indent_stack <- indent_stack.Tail
+                    if indent_stack.IsEmpty = false then
+                        failwith "Mismatched indentation level!"
+                
+            (* Handling indentation or dedentation *)
+            if pending <> 0 then
+                if pending > 0 then
+                        elements <-Symbol.Indent(size - uint(source.Length)) :: elements
+                        pending <- pending - 1
+                else
+                    while indent_stack.Length <0 do
+                        elements <- Symbol.Dedent(size - uint(source.Length)) :: elements
+                        pending <- pending + 1
+    
+        (* Again loop *)
+        while source.Length > 0 && at_bol = false do
+            
+            while match source with
+                  | '\t' :: rest | ' ' :: rest ->
+                        source <- rest
+                        true
+                  | _ -> false
+                  do ()
+            
+            let mutable pos = size - uint(source.Length)
+               
+            match source, pos with
+            |   Number(s, r) ->
+                    elements <- s :: elements
+                    source <- r
+            |   OperatorOrDelimiter(s, r) ->
+                    elements <- s :: elements
+                    source <- r
+                    match s with
+                    | Symbol.LeftParenthesis _ ->
+                            parenthesis_stack <- '(' :: parenthesis_stack
+                            level <- level + 1
+                    | Symbol.RightParenthesis _ ->
+                        match parenthesis_stack with
+                        | '(' :: rest->
+                                parenthesis_stack <- rest
+                                level <- level - 1
+                        | _ -> failwith "Unexpected right parenthesis!"
+                    | Symbol.LeftSquareBracket _ ->
+                            parenthesis_stack <- '[' :: parenthesis_stack
+                            level <- level + 1
+                    | Symbol.RightSquareBracket _ ->
+                        match parenthesis_stack with
+                        | '[' :: rest->
+                                parenthesis_stack <- rest
+                                level <- level - 1
+                        | _ -> failwith "Unexpected right bracket parenthesis!"
+                    | Symbol.LeftCurlyBracket _ ->
+                            parenthesis_stack <- '{' :: parenthesis_stack
+                            level <- level + 1
+                    | Symbol.RightCurlyBracket _ ->
+                        match parenthesis_stack with
+                        | '{' :: rest->
+                                parenthesis_stack <- rest
+                                level <- level - 1
+                        | _ -> failwith "Unexpected right parenthesis!"
+                    | _ -> ()
+            |   ReservedKeywordOrLiteral(s, r) ->
+                    elements <- s :: elements
+                    source <- r
+            |   SingleOrTripleString(s, r) ->
+                    elements <- s :: elements
+                    source <- r
+            |   '\\' :: '\r' :: '\n' :: rest, _  |  '\\' :: '\n' :: rest, _  |  '\\':: '\r' :: rest, _ ->
                     source <- rest
-                    true
-              | _ -> false
-              do ()
-        
-        let mutable pos = size - uint(source.Length)
-           
-        match source, pos with
-        |   Number(s, r) ->
-                elements <- s :: elements
-                source <- r
-        |   OperatorOrDelimiter(s, r) ->
-                elements <- s :: elements
-                source <- r
-                match s with
-                | Symbol.LeftParenthesis _ -> parenthesis_stack <- '(' :: parenthesis_stack
-                | Symbol.RightParenthesis _ ->
-                    match parenthesis_stack with
-                    | '(' :: rest-> parenthesis_stack <- rest
-                    | _ -> failwith "Unexpected right parenthesis!"
-                | Symbol.LeftSquareBracket _ -> parenthesis_stack <- '[' :: parenthesis_stack
-                | Symbol.RightSquareBracket _ ->
-                    match parenthesis_stack with
-                    | '[' :: rest-> parenthesis_stack <- rest
-                    | _ -> failwith "Unexpected right bracket parenthesis!"
-                | Symbol.LeftCurlyBracket _ -> parenthesis_stack <- '{' :: parenthesis_stack
-                | Symbol.RightCurlyBracket _ ->
-                    match parenthesis_stack with
-                    | '{' :: rest-> parenthesis_stack <- rest
-                    | _ -> failwith "Unexpected right parenthesis!"
-                | _ -> ()
-        |   ReservedKeywordOrLiteral(s, r) ->
-                elements <- s :: elements
-                source <- r
-        |   SingleOrTripleString(s, r) ->
-                elements <- s :: elements
-                source <- r
-        |   '\\' :: '\r' :: '\n' :: rest, _  |  '\\' :: '\n' :: rest, _  |  '\\':: '\r' :: rest, _ ->
-                source <- rest
-        |   '\\' :: _ , _ -> failwith "Unexpected backslash not followed by newline!"
-        |   '\r' :: '\n' :: rest, _  |  '\n' :: rest, _ | '\r' :: rest, _ -> source <- rest
-        |   '#' ::  ' ' :: 't' :: 'y' :: 'p' :: 'e' ::':' :: rest, _    -> source <- rest
-        |   '#' ::  rest, _  -> source <- rest
-        |   _ -> failwith "Unknown symbol!"
+            |   '\\' :: _ , _ -> failwith "Unexpected backslash not followed by newline!"
+            |   '\r' :: '\n' :: rest, _  |  '\n' :: rest, _ | '\r' :: rest, _ -> source <- rest
+            |   '#' ::  ' ' :: 't' :: 'y' :: 'p' :: 'e' ::':' :: rest, _    -> source <- rest
+            |   '#' ::  rest, _  -> source <- rest
+            |   _ -> failwith "Unknown symbol!"
     
     List.rev elements
 
