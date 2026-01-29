@@ -918,7 +918,10 @@ let Tokenize(text: char list) : SymbolStream =
                 source <- r
         |   '\\' :: '\r' :: '\n' :: rest, _  |  '\\' :: '\n' :: rest, _  |  '\\':: '\r' :: rest, _ ->
                 source <- rest
-        |   '\\' :: rest, _ -> failwith "Unexpected backslash not followed by newline!"
+        |   '\\' :: _ , _ -> failwith "Unexpected backslash not followed by newline!"
+        |   '\r' :: '\n' :: rest, _  |  '\n' :: rest, _ | '\r' :: rest, _ -> source <- rest
+        |   '#' ::  ' ' :: 't' :: 'y' :: 'p' :: 'e' ::':' :: rest, _    -> source <- rest
+        |   '#' ::  rest, _  -> source <- rest
         |   _ -> failwith "Unknown symbol!"
     
     List.rev elements
