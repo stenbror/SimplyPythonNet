@@ -349,13 +349,29 @@ let (|Prefix|_|) (text: char list) : (string * char list) option =
     |   _ -> Option.None
     
 let (|SingleQuoteString|_|) (text: char list) : (string * char list) option =
+    let rec loop acc stop tokens =
+        match tokens with
+        |   '\'' :: rest when stop = tokens.Head -> List.rev ('\'' :: acc), rest
+        |   '"' :: rest when stop = tokens.Head -> List.rev ('"' :: acc), rest
+        |   [] -> failwith "Unexpected end of string!"
+        |   '\r' :: _ | '\n' :: _ -> failwith "Unexpected newline in single quote string!"
+        |   c :: rest -> loop (c :: acc) stop rest
+            
     match text with
     |   '\'' :: '\'' :: '\'' :: _   -> Option.None (* Triple quote string found *)
     |   '"' :: '"' :: '"' :: _      -> Option.None (* Triple quote string found *)
     |   '\'' :: '\'' :: rest        -> Some("''", rest) (* Empty string *)
     |   '"' :: '"' :: rest          -> Some("\"\"", rest) (* Empty *)
+    |   '\'' :: rest                ->
+                let text2 , res = loop [ '\'' ] '\'' rest
+                let result_text = text2 |> System.String.Concat
+                Some(result_text, res)
+    |   '"' :: rest                 ->
+                let text2 , res = loop [ '"' ] '"' rest
+                let result_text = text2 |> System.String.Concat
+                Some(result_text, res)
     |   _ -> Option.None
-    
+                
 let (|MultiQuoteString|_|) (text: char list) : (string * char list) option =
     match text with
     |   '\'' :: '\'' :: '\'' :: '\'' :: '\'' :: '\'' :: rest    -> Some("''''''", rest) (* Empty string *)
