@@ -845,5 +845,10 @@ let ``Sum rule: plus and minus`` () =
     
 [<Fact>]
 let ``Atom rule: strings`` () =
-    let result = [ Symbol.String(0u, 22u, "'Hello, World!'"); Symbol.String(0u, 1u, "r'Test'"); Symbol.SemiColon(22u, 23u) ] |> Parse
+    let result = "'Hello, World!'r'Test';" |> Seq.toList |> Tokenize |> Parse
     Assert.Equivalent((AST.String(0u, 22u, ["'Hello, World!'"; "r'Test'"]), [ Symbol.SemiColon(22u, 23u) ]), result)
+    
+[<Fact>]
+let ``Atom rule: raw strings`` () =
+    let result = "r'Test';" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.String(0u, 7u, ["r'Test'"]), [ Symbol.SemiColon(7u, 8u) ]), result)
