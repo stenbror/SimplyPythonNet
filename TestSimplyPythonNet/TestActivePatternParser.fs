@@ -799,7 +799,17 @@ let ``Tokenizer: Number starting with zeros period and exponent Imaginary`` () =
 [<Fact>]                                                                                
 let ``Tokenizer: Number 0.0j`` () =                                  
     let result = "0.0j" |> Seq.toList |> Tokenize |> Parse    
-    Assert.Equivalent((AST.Number(0u, 4u, "0.0j"), []), result)  
+    Assert.Equivalent((AST.Number(0u, 4u, "0.0j"), []), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: String with single quote that is empty`` () =                                  
+    let result = "'';" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.String(0u, 2u, [ "''" ]), [ Symbol.SemiColon(2u, 3u) ]), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: String with double quote that is empty`` () =                                  
+    let result = "\"\";" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.String(0u, 2u, [ "\"\"" ]), [ Symbol.SemiColon(2u, 3u) ]), result)  
     
 (* Expression parser unittests *)
        

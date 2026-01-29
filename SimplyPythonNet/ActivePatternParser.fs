@@ -342,12 +342,42 @@ let (|OperatorOrDelimiter|_|) (text: char list, start: uint) : (Symbol * char li
     |   '<' :: rest -> Some(Symbol.Less(start, start + 1u), rest)
     |   '>' :: rest -> Some(Symbol.Greater(start, start + 1u), rest)
     |   _ ->    Option.None
-    
-let (|SingleOrTripleString|_|) (text: char list, start: uint) : (Symbol * char list) option =
-    match text, start with
+
+
+let (|Prefix|_|) (text: char list) : (string * char list) option =
+    match text with
     |   _ -> Option.None
     
+let (|SingleQuoteString|_|) (text: char list) : (string * char list) option =
+    match text with
+    |   '\'' :: '\'' :: '\'' :: _   -> Option.None (* Triple quote string found *)
+    |   '"' :: '"' :: '"' :: _      -> Option.None (* Triple quote string found *)
+    |   '\'' :: '\'' :: rest        -> Some("''", rest) (* Empty string *)
+    |   '"' :: '"' :: rest          -> Some("\"\"", rest) (* Empty *)
+    |   _ -> Option.None
     
+let (|MultiQuoteString|_|) (text: char list) : (string * char list) option =
+    match text with
+    |   _ -> Option.None
+
+let (|SingleOrTripleString|_|) (text: char list, pos: uint) : (Symbol * char list) option =
+    let mutable result_text = ""
+    let mutable final_rest = text
+    
+    match text with
+    |   Prefix(prefix, rest) ->
+            result_text <- prefix
+            final_rest <- rest
+    |   _ -> ()
+            
+    match final_rest with
+    |   SingleQuoteString(text, rest) ->
+            result_text <- result_text + text
+            Some(Symbol.String(pos, pos + uint result_text.Length, result_text ), rest)
+    |   MultiQuoteString(text, rest) ->
+            result_text <- result_text + text
+            Some(Symbol.String(pos, pos + uint result_text.Length, result_text ), rest)
+    |   _ -> Option.None
     
 let (|HexDigit|_|) (text: char list) : (char * char list) option =
     match text with
