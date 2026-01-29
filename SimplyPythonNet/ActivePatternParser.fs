@@ -358,6 +358,8 @@ let (|SingleQuoteString|_|) (text: char list) : (string * char list) option =
     
 let (|MultiQuoteString|_|) (text: char list) : (string * char list) option =
     match text with
+    |   '\'' :: '\'' :: '\'' :: '\'' :: '\'' :: '\'' :: rest    -> Some("''''''", rest) (* Empty string *)
+    |   '"' :: '"' :: '"' :: '"' :: '"' :: '"' :: rest          ->Some("\"\"\"\"\"\"", rest) (* Empty string *)
     |   _ -> Option.None
 
 let (|SingleOrTripleString|_|) (text: char list, pos: uint) : (Symbol * char list) option =

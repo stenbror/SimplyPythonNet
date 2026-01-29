@@ -809,7 +809,17 @@ let ``Tokenizer: String with single quote that is empty`` () =
 [<Fact>]                                                                                
 let ``Tokenizer: String with double quote that is empty`` () =                                  
     let result = "\"\";" |> Seq.toList |> Tokenize |> Parse    
-    Assert.Equivalent((AST.String(0u, 2u, [ "\"\"" ]), [ Symbol.SemiColon(2u, 3u) ]), result)  
+    Assert.Equivalent((AST.String(0u, 2u, [ "\"\"" ]), [ Symbol.SemiColon(2u, 3u) ]), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: String with triple single quote that is empty`` () =                                  
+    let result = "'''''';" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.String(0u, 6u, [ "''''''" ]), [ Symbol.SemiColon(6u, 7u) ]), result)
+    
+[<Fact>]                                                                                
+let ``Tokenizer: String with triple double quote that is empty`` () =                                  
+    let result = "\"\"\"\"\"\";" |> Seq.toList |> Tokenize |> Parse    
+    Assert.Equivalent((AST.String(0u, 6u, [ "\"\"\"\"\"\"" ]), [ Symbol.SemiColon(6u, 7u) ]), result)  
     
 (* Expression parser unittests *)
        
