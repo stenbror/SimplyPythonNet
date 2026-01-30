@@ -140,6 +140,7 @@ type AST =
     | YieldFrom of uint * uint * AST
     | Yield of uint * uint * AST
     | Test of uint * uint * AST * AST * AST
+    | Lambda of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -1362,10 +1363,24 @@ and  (|Expressions|) (stream : SymbolStream) : NodeTree =
             
             
 and  (|LambdaDef|_|) (stream : SymbolStream) : NodeTree option =
+    let s = GetStartPosition stream
     match stream with
     |   Symbol.Lambda _ :: rest ->
-            Some(AST.Empty, rest)
+            match rest with
+            |   Symbol.Colon _ :: rest2 ->
+                    let right, rest3 = match rest2 with |   Expression(ast, rest4) -> ast, rest4
+                    Some(AST.Lambda(s, GetEndPosition rest3, AST.Empty, right), rest3)
+            | _ ->
+                let right, rest2 = match rest with |   LambdaParams(ast, rest3) -> ast, rest3 | _ -> failwith "Expecting parameters in lambda expression 'lambda'"
+                match rest2 with
+                |   Symbol.Colon _ :: rest3 ->
+                        let body, rest4 = match rest3 with |   Expression(ast, rest5) -> ast, rest5
+                        Some(AST.Lambda(s, GetEndPosition rest4, right, body), rest4)
+                | _ -> failwith "Expecting ':' after parameters in lambda expression"
     |   _ -> Option.None
+    
+and  (|LambdaParams|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
     
 
 let Parse(stream : SymbolStream) : NodeTree =
