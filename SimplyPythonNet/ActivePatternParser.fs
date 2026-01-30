@@ -141,6 +141,11 @@ type AST =
     | Yield of uint * uint * AST
     | Test of uint * uint * AST * AST * AST
     | Lambda of uint * uint * AST * AST
+    | EmptySetOrDictionary of uint * uint
+    | Set of uint * uint * AST list
+    | Dictionary of uint * uint * AST list
+    | DictionaryKeyValue of uint * uint * AST * AST
+    | DictionaryFromDictionary of uint * uint * AST
     
 type SymbolStream = Symbol list
 
@@ -1021,7 +1026,80 @@ and (|TupleOrGeneratorExpression|_|) (stream : SymbolStream) : NodeTree option =
 
 and (|ListOrListComp|_|) (stream : SymbolStream) : NodeTree option = Option.None
 
-and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option = Option.None
+and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
+    let s = GetStartPosition stream
+    let mutable elements = []
+    match stream with
+    | Symbol.LeftCurlyBracket _ :: Symbol.RightCurlyBracket (_, e) :: rest -> Some(AST.EmptySetOrDictionary(s, e), rest)
+    | Symbol.LeftCurlyBracket _ :: rest ->
+            let mutable rest_again = rest
+            while   match rest_again with
+                    | Symbol.Multiply(_) :: rest2 ->
+                            let element, rest3 = match rest2 with | StarNamedExpression(s, e) -> s, e
+                            rest_again <- rest3
+                            elements <- element :: elements
+                            match rest3 with
+                            | Symbol.Comma _ :: rest4 ->
+                                    rest_again <- rest4
+                                    match rest4 with
+                                    | Symbol.RightCurlyBracket _ :: _ -> false
+                                    | _ -> true
+                            | _ -> false
+                    | Symbol.Power(s2, _) :: rest2 ->
+                            let element, rest3 = match rest2 with | BitwiseOr(s, e) -> s, e
+                            rest_again <- rest3
+                            elements <- AST.DictionaryFromDictionary(s2, GetStartPosition rest_again, element) :: elements
+                            match rest3 with
+                            | Symbol.Comma _ :: rest4 ->
+                                    rest_again <- rest4
+                                    match rest4 with
+                                    | Symbol.RightCurlyBracket _ :: _ -> false
+                                    | _ -> true
+                            | _ -> false
+                    | _ ->
+                            let s2 = GetStartPosition rest_again
+                            let mutable left, rest2 = match rest_again with | StarNamedExpression(s, e) -> s, e
+                            match rest2 with
+                            |   Symbol.Colon _ :: _ ->
+                                    let left2, rest3 = match rest_again with | Expression (s, r) -> s, r
+                                    rest_again <- rest3
+                                    match rest_again with
+                                    |   Symbol.Colon _ :: rest4 ->
+                                            let right, rest5 = match rest4 with | Expression (s, r) -> s, r
+                                            rest_again <- rest5
+                                            elements <- AST.DictionaryKeyValue(s2, GetStartPosition rest_again, left2, right) :: elements
+                                    |   _ -> failwith "Expecting a colon after dictionary value!"
+                            |   _ ->
+                                    elements <- left :: elements
+                                    rest_again <- rest2
+                                    
+                            match rest_again with
+                            | Symbol.Comma _ :: rest4 ->
+                                    rest_again <- rest4
+                                    match rest4 with
+                                    | Symbol.RightCurlyBracket _ :: _ -> false
+                                    | _ -> true
+                            | _ -> false
+                    do ()
+                    
+            match rest_again with
+            | Symbol.RightCurlyBracket _ :: rest8 -> rest_again <- rest8
+            | _ -> failwith "Expecting right curly bracket!"
+                    
+            elements <- List.rev elements
+            match elements.Head with
+            | DictionaryFromDictionary _ | DictionaryKeyValue _ ->
+                    let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> true | DictionaryFromDictionary _ -> true | _ -> false)
+                    match res with
+                    | true -> Some(AST.Dictionary(s, GetEndPosition rest_again, elements), rest_again)
+                    | false -> failwith "Expecting dictionary key-value pairs!"
+            | _ ->
+                    let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> false | DictionaryFromDictionary _ -> false | _ -> true)
+                    match res with
+                    | true -> Some(AST.Set(s, GetEndPosition rest_again, elements), rest_again)
+                    | false -> failwith "Expecting dictionary key-value pairs!"
+    |   _ ->
+            Option.None
               
 and (|Primary|) (stream: SymbolStream) : NodeTree =
     match stream with
@@ -1381,6 +1459,13 @@ and  (|LambdaDef|_|) (stream : SymbolStream) : NodeTree option =
     
 and  (|LambdaParams|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
+    
+    
+    
+and  (|LambdaName|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Name(s, e, t) :: rest -> Some(AST.Name(s, e, t), rest)
+    |   _ ->    Option.None
     
 
 let Parse(stream : SymbolStream) : NodeTree =
