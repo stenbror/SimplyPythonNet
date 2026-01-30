@@ -852,3 +852,9 @@ let ``Atom rule: strings`` () =
 let ``Atom rule: raw strings`` () =
     let result = "r'Test';" |> Seq.toList |> Tokenize |> Parse
     Assert.Equal((AST.String(0u, 7u, ["r'Test'"]), [ Symbol.SemiColon(7u, 8u) ]), result)
+    
+    
+[<Fact>]
+let ``Lambda without arguments`` () =
+    let result = "lambda: a + 1;" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.Lambda(0u, 14u, AST.Empty, AST.Plus(8u, 13u, AST.Name(8u, 9u, "a"), AST.Number(12u, 13u, "1"))), [ Symbol.SemiColon(13u, 14u) ]), result)
