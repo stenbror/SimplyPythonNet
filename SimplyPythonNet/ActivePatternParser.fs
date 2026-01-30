@@ -1097,7 +1097,7 @@ and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
                     let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> false | DictionaryFromDictionary _ -> false | _ -> true)
                     match res with
                     | true -> Some(AST.Set(s, GetEndPosition rest_again, elements), rest_again)
-                    | false -> failwith "Expecting dictionary key-value pairs!"
+                    | false -> failwith "Expecting Set elements!"
     |   _ ->
             Option.None
               
