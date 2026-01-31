@@ -148,6 +148,10 @@ type AST =
     | DictionaryFromDictionary of uint * uint * AST
     | List of uint * uint * AST list
     | Tuple of uint * uint * AST list
+    | GeneratorList of uint * uint * AST list
+    | AsyncForGenerator of uint * uint * AST * AST * AST List
+    | ForGenerator of uint * uint * AST * AST * AST List
+    | IfGenerator of uint * uint * AST
     
 type SymbolStream = Symbol list
 
@@ -1478,6 +1482,89 @@ and  (|LambdaName|_|) (stream : SymbolStream) : NodeTree option =
     |   Symbol.Name(s, e, t) :: rest -> Some(AST.Name(s, e, t), rest)
     |   _ ->    Option.None
     
+    
+    
+(* Generators pattern *)
+
+and (|ForIfClause|_|) (stream : SymbolStream) : NodeTree option =
+    let mutable res = Option.None
+    let mutable rest_again = stream
+    let mutable elements = []
+    let mutable left = AST.Empty
+    let mutable right = AST.Empty
+    
+    match rest_again with
+    |   Symbol.Async(s, _) :: rest8 ->
+            match rest8 with
+            |   Symbol.For _ :: rest2 ->
+                    let rest = rest2
+                    let left2, rest2 = match rest with |   StarTargetsList(s, r) -> s, r | _ -> failwith "Expecting targets in for loop"
+                    left <- left2
+                    match rest2 with
+                    |   Symbol.In _ :: rest3 ->
+                            let right2, rest4 = match rest3 with |   Disjunction(s, r) -> s, r
+                            right <- right2
+                            rest_again <- rest4
+                            
+                            while   match rest_again with
+                                    | Symbol.If(s2, _) :: rest2 ->
+                                            let el, rest5 = match rest2 with |   Disjunction(s, r) -> s, r
+                                            rest_again <- rest5
+                                            elements <- AST.IfGenerator(s2, GetStartPosition rest_again, el) :: elements
+                                            true
+                                    | _ -> false
+                                do ()
+                    |   _ -> failwith "Expecting 'in' after targets in async for loop" 
+            |   _ -> failwith "Expecting 'for' in 'async for'"
+        
+            Some(AST.AsyncForGenerator(s, GetStartPosition rest_again, left, right, List.rev elements), rest_again)
+    |   Symbol.For(s, _) :: rest ->
+            let left, rest2 = match rest with |   StarTargetsList(s, r) -> s, r | _ -> failwith "Expecting targets in for loop"
+            match rest2 with
+            |   Symbol.In _ :: rest3 ->
+                    let right2, rest4 = match rest3 with |   Disjunction(s, r) -> s, r
+                    right <- right2
+                    rest_again <- rest4
+                    
+                    while   match rest_again with
+                            | Symbol.If(s2, _) :: rest2 ->
+                                    let el, rest5 = match rest2 with |   Disjunction(s, r) -> s, r
+                                    rest_again <- rest5
+                                    elements <- AST.IfGenerator(s2, GetStartPosition rest_again, el) :: elements
+                                    true
+                            | _ -> false
+                        do ()
+            |   _ -> failwith "Expecting 'in' after targets in for loop"
+        
+            Some(AST.ForGenerator(s, GetStartPosition rest_again, left, right, List.rev elements), rest_again)
+    |   _ -> Option.None
+    
+and (|ForIfClauseList|_|) (stream : SymbolStream) : NodeTree option =
+     let s = GetStartPosition stream
+     let mutable elements = []
+     let mutable rest_final = stream
+     let mutable res = AST.Empty
+     
+     match stream with
+     |   Symbol.For _ :: _   |   Symbol.Async _ :: _ ->
+            while  match rest_final with
+                   | Symbol.For _ :: _ | Symbol.Async _ :: _ ->
+                        let res2, rest2 = match rest_final with |   ForIfClause(ast, rest2) -> ast, rest2 | _ -> failwith "Expecting for-if clause in for-loop"
+                        elements <- res2 :: elements
+                        rest_final <- rest2
+                        true
+                   | _ -> false
+                do ()
+                
+            match elements.Length with
+            | 1 -> Some(res, rest_final)
+            | _ -> Some(AST.GeneratorList(s, GetStartPosition rest_final, elements), rest_final)
+     |  _ -> Option.None
+    
+(* Generic targets pattern *)    
+
+and (|StarTargetsList|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
 
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
