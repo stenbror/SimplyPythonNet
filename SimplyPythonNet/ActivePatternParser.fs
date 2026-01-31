@@ -152,6 +152,7 @@ type AST =
     | AsyncForGenerator of uint * uint * AST * AST * AST List
     | ForGenerator of uint * uint * AST * AST * AST List
     | IfGenerator of uint * uint * AST
+    | AssignmentExpression of uint * uint * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -1032,8 +1033,44 @@ and (|Strings|_|) (stream : SymbolStream) : NodeTree option =
     |   _ -> Option.None
     
 and (|TupleOrGeneratorExpression|_|) (stream : SymbolStream) : NodeTree option =
+    let mutable elements = []
+    let mutable rest_again = stream
     match stream with
     |   Symbol.LeftParenthesis(s, _) :: Symbol.RightParenthesis _ :: rest -> Some(AST.Tuple(s, GetStartPosition rest, []), rest)
+    |   Symbol.LeftParenthesis(s, _ ) :: Symbol.Name _ :: Symbol.Equal _ :: rest ->  (* Generator Expression *)
+                let el, rest2 = match rest with | AssignmentExpressions(e, r) -> e, r
+                elements <- el :: elements
+                rest_again <- rest2
+                
+                let el2, rest3 = match rest with | ForIfClauseList(e, r) -> e, r | _ -> failwith "Expecting 'for' or 'async' generator expression!"
+                elements <- el2 :: elements
+                rest_again <- rest3
+                
+                match rest_again with
+                |   Symbol.RightParenthesis _ :: rest4 -> rest_again <- rest4
+                |   _ -> failwith "Expecting ')'!"
+                
+                Some(AST.Tuple(s, GetStartPosition rest_again, List.rev elements), rest_again)
+    |   Symbol.LeftParenthesis(s, _) :: rest ->
+                let mutable elements = []
+                let mutable rest_again = rest
+                let el, rest2 = match rest_again with | StarNamedExpression(s, r) -> s, r
+                elements <- el :: elements
+                rest_again <- rest2
+                
+                while   match rest_again with
+                        | Symbol.Comma _ :: Symbol.RightParenthesis _ :: rest ->
+                                rest_again <- rest
+                                false
+                        | Symbol.Comma _ :: rest ->
+                                let el2, rest2 = match rest with | StarNamedExpression(s, r) -> s, r
+                                elements <- el2 :: elements
+                                rest_again <- rest2
+                                true
+                        | _ -> false
+                        do ()
+                
+                Some(AST.Tuple(s, GetStartPosition rest_again, List.rev elements), rest_again)
     |   _ -> Option.None
 
 and (|ListOrListComp|_|) (stream : SymbolStream) : NodeTree option =
@@ -1445,6 +1482,17 @@ and  (|StarExpressions|) (stream : SymbolStream) : NodeTree =
             match expr.Length with
             | 1 -> ast, restFinal
             | _ -> AST.StarExpressionList(s, GetEndPosition restFinal, expr), restFinal
+            
+and  (|AssignmentExpressions|) (stream : SymbolStream) : NodeTree =
+        match stream with
+        | Symbol.Name(s, e, t) :: rest ->
+                let left = AST.Name(s, e, t)
+                match rest with
+                |   Symbol.ColonEqual _ :: rest2 ->
+                        let right, rest3 = match rest2 with | Expressions(s2, r) -> s2, r
+                        (AST.AssignmentExpression(s, GetStartPosition rest3, left, right), rest3)
+                |   _ -> failwith "Expecting assignment operator after variable name!"
+        | _ -> failwith "Expecting assignment expression!"
 
 and  (|YieldExpression|_|) (stream : SymbolStream) : NodeTree option =
     let s = GetStartPosition stream
