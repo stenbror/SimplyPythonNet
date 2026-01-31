@@ -146,6 +146,8 @@ type AST =
     | Dictionary of uint * uint * AST list
     | DictionaryKeyValue of uint * uint * AST * AST
     | DictionaryFromDictionary of uint * uint * AST
+    | List of uint * uint * AST list
+    | Tuple of uint * uint * AST list
     
 type SymbolStream = Symbol list
 
@@ -1025,9 +1027,15 @@ and (|Strings|_|) (stream : SymbolStream) : NodeTree option =
             Some(AST.String(s, GetStartPosition restFinal, res), restFinal)
     |   _ -> Option.None
     
-and (|TupleOrGeneratorExpression|_|) (stream : SymbolStream) : NodeTree option = Option.None
+and (|TupleOrGeneratorExpression|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.LeftParenthesis(s, _) :: Symbol.RightParenthesis _ :: rest -> Some(AST.Tuple(s, GetStartPosition rest, []), rest)
+    |   _ -> Option.None
 
-and (|ListOrListComp|_|) (stream : SymbolStream) : NodeTree option = Option.None
+and (|ListOrListComp|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.LeftSquareBracket(s, _) :: Symbol.RightSquareBracket _ :: rest -> Some(AST.List(s, GetStartPosition rest, []), rest)
+    |   _ -> Option.None
 
 and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
     let s = GetStartPosition stream

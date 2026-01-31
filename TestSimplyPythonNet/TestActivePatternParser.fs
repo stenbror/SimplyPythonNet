@@ -896,3 +896,13 @@ let ``Dictionary multiple with power`` () =
         AST.DictionaryKeyValue(2u, 7u, AST.Name(2u, 3u, "a"), AST.Number(6u, 7u, "1"))
         AST.DictionaryFromDictionary(9u, 12u, AST.Name(11u, 12u, "b"))
     ]), [ Symbol.SemiColon(15u, 16u) ]), result)
+    
+[<Fact>]
+let ``Empty tuple`` () =
+    let result = "();" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.Tuple(0u, 2u, []), [ Symbol.SemiColon(2u, 3u) ]), result)
+    
+[<Fact>]
+let ``Empty list`` () =
+    let result = "[];" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.List(0u, 2u, []), [ Symbol.SemiColon(2u, 3u) ]), result)
