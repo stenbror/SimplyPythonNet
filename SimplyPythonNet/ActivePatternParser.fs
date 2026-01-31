@@ -1049,6 +1049,14 @@ and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
     | Symbol.LeftCurlyBracket _ :: rest ->
             let mutable rest_again = rest
             while   match rest_again with
+                    | Symbol.Async _ :: _ | Symbol.For _ :: _ ->
+                            match elements.Length with
+                            | 1 ->
+                                    let next, rest10 = match rest_again with | ForIfClauseList(s, r) -> s, r | _ -> failwith "Expecting for-if clause list!"
+                                    elements <- next :: elements
+                                    rest_again <- rest10
+                                    false
+                            | _ -> failwith "Expecting a single expression element in dictionary or set before comprehension!"
                     | Symbol.Multiply(_) :: rest2 ->
                             let element, rest3 = match rest2 with | StarNamedExpression(s, e) -> s, e
                             rest_again <- rest3
@@ -1104,12 +1112,12 @@ and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
             elements <- List.rev elements
             match elements.Head with
             | DictionaryFromDictionary _ | DictionaryKeyValue _ ->
-                    let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> true | DictionaryFromDictionary _ -> true | _ -> false)
+                    let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> true | DictionaryFromDictionary _ -> true | GeneratorList _ -> true | AsyncForGenerator _ -> true | ForGenerator _ -> true | _ -> false)
                     match res with
                     | true -> Some(AST.Dictionary(s, GetStartPosition rest_again, elements), rest_again)
                     | false -> failwith "Expecting dictionary key-value pairs!"
             | _ ->
-                    let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> false | DictionaryFromDictionary _ -> false | _ -> true)
+                    let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> false | DictionaryFromDictionary _ -> false | GeneratorList _ -> true | AsyncForGenerator _ -> true | ForGenerator _ -> true | _ -> true)
                     match res with
                     | true -> Some(AST.Set(s, GetStartPosition rest_again, elements), rest_again)
                     | false -> failwith "Expecting Set elements!"
