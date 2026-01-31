@@ -1039,6 +1039,29 @@ and (|TupleOrGeneratorExpression|_|) (stream : SymbolStream) : NodeTree option =
 and (|ListOrListComp|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
     |   Symbol.LeftSquareBracket(s, _) :: Symbol.RightSquareBracket _ :: rest -> Some(AST.List(s, GetStartPosition rest, []), rest)
+    |   Symbol.LeftSquareBracket(s, _) :: rest ->
+                let mutable elements = []
+                let mutable rest_again = rest
+                let el, rest2 = match rest_again with | StarNamedExpression(s, r) -> s, r
+                elements <- el :: elements
+                rest_again <- rest2
+                
+                match rest_again with
+                | Symbol.Async _ :: _ | Symbol.For _ :: _ ->
+                        let next, rest10 = match rest_again with | ForIfClauseList(s, r) -> s, r | _ -> failwith "Expecting for-if clause list!"
+                        elements <- next :: elements
+                        rest_again <- rest10
+                |   _ ->
+                        while   match rest_again with
+                                | Symbol.Comma _ :: rest11 ->
+                                        let el2, rest12 = match rest11 with | StarNamedExpression(s, r) -> s, r
+                                        elements <- el2 :: elements
+                                        rest_again <- rest12
+                                        true
+                                | _ -> false
+                            do ()
+
+                Some(AST.List(s, GetStartPosition rest_again, List.rev elements), rest_again)
     |   _ -> Option.None
 
 and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
@@ -1098,10 +1121,12 @@ and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
                                     
                             match rest_again with
                             | Symbol.Comma _ :: rest4 ->
+                                    match rest4 with | Symbol.Async _ :: _ | Symbol.For _ :: _  -> failwith "Comma before 'async' or 'for' not allowed!" | _ -> ()
                                     rest_again <- rest4
                                     match rest4 with
                                     | Symbol.RightCurlyBracket _ :: _ -> false
                                     | _ -> true
+                            | Symbol.Async _ :: _ | Symbol.For _ :: _ -> true
                             | _ -> false
                     do ()
                     
