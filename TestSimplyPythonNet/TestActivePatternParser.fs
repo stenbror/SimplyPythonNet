@@ -858,3 +858,41 @@ let ``Atom rule: raw strings`` () =
 let ``Lambda without arguments`` () =
     let result = "lambda: a + 1;" |> Seq.toList |> Tokenize |> Parse
     Assert.Equal((AST.Lambda(0u, 14u, AST.Empty, AST.Plus(8u, 13u, AST.Name(8u, 9u, "a"), AST.Number(12u, 13u, "1"))), [ Symbol.SemiColon(13u, 14u) ]), result)
+    
+[<Fact>]
+let ``Empty Set or Dictionary`` () =
+    let result = "{};" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.EmptySetOrDictionary(0u, 2u), [ Symbol.SemiColon(2u, 3u) ]), result)
+    
+[<Fact>]
+let ``Set simple`` () =
+    let result = "{ a, };" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.Set(0u, 6u, [ AST.Name(2u, 3u, "a") ]), [ Symbol.SemiColon(6u, 7u) ]), result)
+    
+[<Fact>]
+let ``Set multiple`` () =
+    let result = "{ a, b, };" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.Set(0u, 9u, [ AST.Name(2u, 3u, "a"); AST.Name(5u, 6u, "b") ]), [ Symbol.SemiColon(9u, 10u) ]), result)
+      
+[<Fact>]
+let ``Dictionary simple`` () =
+    let result = "{ a : 1, };" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.Dictionary(0u, 10u, [
+        AST.DictionaryKeyValue(2u, 7u, AST.Name(2u, 3u, "a"), AST.Number(6u, 7u, "1"))
+    ]), [ Symbol.SemiColon(10u, 11u) ]), result)
+    
+[<Fact>]
+let ``Dictionary multiple`` () =
+    let result = "{ a : 1, b : 2, };" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.Dictionary(0u, 17u, [
+        AST.DictionaryKeyValue(2u, 7u, AST.Name(2u, 3u, "a"), AST.Number(6u, 7u, "1"))
+        AST.DictionaryKeyValue(9u, 14u, AST.Name(9u, 10u, "b"), AST.Number(13u, 14u, "2"))
+    ]), [ Symbol.SemiColon(17u, 18u) ]), result)
+    
+[<Fact>]
+let ``Dictionary multiple with power`` () =
+    let result = "{ a : 1, **b, };" |> Seq.toList |> Tokenize |> Parse
+    Assert.Equal((AST.Dictionary(0u, 15u, [
+        AST.DictionaryKeyValue(2u, 7u, AST.Name(2u, 3u, "a"), AST.Number(6u, 7u, "1"))
+        AST.DictionaryFromDictionary(9u, 12u, AST.Name(11u, 12u, "b"))
+    ]), [ Symbol.SemiColon(15u, 16u) ]), result)

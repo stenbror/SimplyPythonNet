@@ -160,6 +160,9 @@ let GetStartPosition (stream : SymbolStream) : uint =
     | Symbol.Number(s, _, _) :: _ -> s
     | Symbol.Plus(s, _) :: _ -> s
     | Symbol.Minus(s, _) :: _ -> s
+    | Symbol.Comma(s, _) :: _ -> s
+    | Symbol.Power(s, _) :: _ -> s
+    | Symbol.Multiply(s, _) :: _ -> s
     | _ -> 0u
     
 let GetEndPosition (stream : SymbolStream) : uint =
@@ -1067,7 +1070,7 @@ and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
                                     |   Symbol.Colon _ :: rest4 ->
                                             let right, rest5 = match rest4 with | Expression (s, r) -> s, r
                                             rest_again <- rest5
-                                            elements <- AST.DictionaryKeyValue(s2, GetStartPosition rest_again, left2, right) :: elements
+                                            elements <- AST.DictionaryKeyValue(s2, (GetStartPosition rest_again), left2, right) :: elements
                                     |   _ -> failwith "Expecting a colon after dictionary value!"
                             |   _ ->
                                     elements <- left :: elements
@@ -1091,12 +1094,12 @@ and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
             | DictionaryFromDictionary _ | DictionaryKeyValue _ ->
                     let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> true | DictionaryFromDictionary _ -> true | _ -> false)
                     match res with
-                    | true -> Some(AST.Dictionary(s, GetEndPosition rest_again, elements), rest_again)
+                    | true -> Some(AST.Dictionary(s, GetStartPosition rest_again, elements), rest_again)
                     | false -> failwith "Expecting dictionary key-value pairs!"
             | _ ->
                     let res = elements |> List.forall (fun e -> match e with | DictionaryKeyValue _ -> false | DictionaryFromDictionary _ -> false | _ -> true)
                     match res with
-                    | true -> Some(AST.Set(s, GetEndPosition rest_again, elements), rest_again)
+                    | true -> Some(AST.Set(s, GetStartPosition rest_again, elements), rest_again)
                     | false -> failwith "Expecting Set elements!"
     |   _ ->
             Option.None
