@@ -13,6 +13,13 @@
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: Empty raise statementt&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: Empty raise with two argument statementt&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: Empty raise with one argument statementt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: continue statementt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: break statementt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: Empty assert with two argument statementt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: Empty assert with one argument statementt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: Pass statementt&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Empty list&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Tokenizer: String with double quote&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3baf6335_002D3aab_002D41bd_002Dbbe0_002D46947f246af7/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Atom rule: strings" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;

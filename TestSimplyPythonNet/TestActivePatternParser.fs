@@ -829,57 +829,57 @@ let ``Tokenizer: String with single quote`` () =
 [<Fact>]                                                                                
 let ``Tokenizer: String with double quote`` () =                                  
     let result = "\"Hello, World!\";" |> Seq.toList |> Tokenize |> Parse    
-    Assert.Equal((AST.String(0u, 15u, [ "\"Hello, World!\"" ]), [ Symbol.SemiColon(15u, 16u) ]), result)
+    Assert.Equal((AST.String(0u, 15u, [ "\"Hello, World!\"" ]), [ Symbol.SemiColon(15u, 16u); Symbol.EndOfFile 16u ]), result)
     
 (* Expression parser unittests *)
        
 [<Fact>]                                                                                
 let ``Primary Expression rule: await expression2`` () =                                  
     let result = "await __init__" |> Seq.toList |> Tokenize |> Parse    
-    Assert.Equivalent((AST.Await(0u, 0u, AST.Name(6u, 14u, "__init__")), []), result)   
+    Assert.Equivalent((AST.Await(0u, 0u, AST.Name(6u, 14u, "__init__")), [ Symbol.EndOfFile 14u  ]), result)   
     
 [<Fact>]                                                                                                                                                                  
 let ``Sum rule: plus and minus`` () =                                                                                                                                     
     let result = "a+b-c;" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equivalent((AST.Minus(0u, 5u, AST.Plus(0u, 3u, AST.Name(0u, 1u, "a"), AST.Name(2u, 3u, "b")), AST.Name(4u, 5u, "c")), [ Symbol.SemiColon(5u, 6u) ]), result) 
+    Assert.Equivalent((AST.Minus(0u, 5u, AST.Plus(0u, 3u, AST.Name(0u, 1u, "a"), AST.Name(2u, 3u, "b")), AST.Name(4u, 5u, "c")), [ Symbol.SemiColon(5u, 6u); Symbol.EndOfFile 6u ]), result) 
     
 [<Fact>]
 let ``Atom rule: strings`` () =
     let result = "'Hello, World!'r'Test';" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equivalent((AST.String(0u, 22u, ["'Hello, World!'"; "r'Test'"]), [ Symbol.SemiColon(22u, 23u) ]), result)
+    Assert.Equivalent((AST.String(0u, 22u, ["'Hello, World!'"; "r'Test'"]), [ Symbol.SemiColon(22u, 23u); Symbol.EndOfFile 23u ]), result)
     
 [<Fact>]
 let ``Atom rule: raw strings`` () =
     let result = "r'Test';" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equal((AST.String(0u, 7u, ["r'Test'"]), [ Symbol.SemiColon(7u, 8u) ]), result)
+    Assert.Equal((AST.String(0u, 7u, ["r'Test'"]), [ Symbol.SemiColon(7u, 8u); Symbol.EndOfFile 8u ]), result)
     
     
 [<Fact>]
 let ``Lambda without arguments`` () =
     let result = "lambda: a + 1;" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equal((AST.Lambda(0u, 14u, AST.Empty, AST.Plus(8u, 13u, AST.Name(8u, 9u, "a"), AST.Number(12u, 13u, "1"))), [ Symbol.SemiColon(13u, 14u) ]), result)
+    Assert.Equal((AST.Lambda(0u, 14u, AST.Empty, AST.Plus(8u, 13u, AST.Name(8u, 9u, "a"), AST.Number(12u, 13u, "1"))), [ Symbol.SemiColon(13u, 14u); Symbol.EndOfFile 14u ]), result)
     
 [<Fact>]
 let ``Empty Set or Dictionary`` () =
     let result = "{};" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equal((AST.EmptySetOrDictionary(0u, 2u), [ Symbol.SemiColon(2u, 3u) ]), result)
+    Assert.Equal((AST.EmptySetOrDictionary(0u, 2u), [ Symbol.SemiColon(2u, 3u); Symbol.EndOfFile 3u ]), result)
     
 [<Fact>]
 let ``Set simple`` () =
     let result = "{ a, };" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equal((AST.Set(0u, 6u, [ AST.Name(2u, 3u, "a") ]), [ Symbol.SemiColon(6u, 7u) ]), result)
+    Assert.Equal((AST.Set(0u, 6u, [ AST.Name(2u, 3u, "a") ]), [ Symbol.SemiColon(6u, 7u); Symbol.EndOfFile 7u ]), result)
     
 [<Fact>]
 let ``Set multiple`` () =
     let result = "{ a, b, };" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equal((AST.Set(0u, 9u, [ AST.Name(2u, 3u, "a"); AST.Name(5u, 6u, "b") ]), [ Symbol.SemiColon(9u, 10u) ]), result)
+    Assert.Equal((AST.Set(0u, 9u, [ AST.Name(2u, 3u, "a"); AST.Name(5u, 6u, "b") ]), [ Symbol.SemiColon(9u, 10u); Symbol.EndOfFile 10u ]), result)
       
 [<Fact>]
 let ``Dictionary simple`` () =
     let result = "{ a : 1, };" |> Seq.toList |> Tokenize |> Parse
     Assert.Equal((AST.Dictionary(0u, 10u, [
         AST.DictionaryKeyValue(2u, 7u, AST.Name(2u, 3u, "a"), AST.Number(6u, 7u, "1"))
-    ]), [ Symbol.SemiColon(10u, 11u) ]), result)
+    ]), [ Symbol.SemiColon(10u, 11u); Symbol.EndOfFile 11u ]), result)
     
 [<Fact>]
 let ``Dictionary multiple`` () =
@@ -887,7 +887,7 @@ let ``Dictionary multiple`` () =
     Assert.Equal((AST.Dictionary(0u, 17u, [
         AST.DictionaryKeyValue(2u, 7u, AST.Name(2u, 3u, "a"), AST.Number(6u, 7u, "1"))
         AST.DictionaryKeyValue(9u, 14u, AST.Name(9u, 10u, "b"), AST.Number(13u, 14u, "2"))
-    ]), [ Symbol.SemiColon(17u, 18u) ]), result)
+    ]), [ Symbol.SemiColon(17u, 18u); Symbol.EndOfFile 18u ]), result)
     
 [<Fact>]
 let ``Dictionary multiple with power`` () =
@@ -895,17 +895,17 @@ let ``Dictionary multiple with power`` () =
     Assert.Equal((AST.Dictionary(0u, 15u, [
         AST.DictionaryKeyValue(2u, 7u, AST.Name(2u, 3u, "a"), AST.Number(6u, 7u, "1"))
         AST.DictionaryFromDictionary(9u, 12u, AST.Name(11u, 12u, "b"))
-    ]), [ Symbol.SemiColon(15u, 16u) ]), result)
+    ]), [ Symbol.SemiColon(15u, 16u); Symbol.EndOfFile 16u ]), result)
     
 [<Fact>]
 let ``Empty tuple`` () =
     let result = "();" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equal((AST.Tuple(0u, 2u, []), [ Symbol.SemiColon(2u, 3u) ]), result)
+    Assert.Equal((AST.Tuple(0u, 2u, []), [ Symbol.SemiColon(2u, 3u); Symbol.EndOfFile 3u ]), result)
     
 [<Fact>]
 let ``Empty list`` () =
     let result = "[];" |> Seq.toList |> Tokenize |> Parse
-    Assert.Equal((AST.List(0u, 2u, []), [ Symbol.SemiColon(2u, 3u) ]), result)
+    Assert.Equal((AST.List(0u, 2u, []), [ Symbol.SemiColon(2u, 3u); Symbol.EndOfFile 3u ]), result)
     
     
 (* Statement pattern tests *)
@@ -913,39 +913,39 @@ let ``Empty list`` () =
 [<Fact>]
 let ``Statement: Pass statementt`` () =
     let result = "pass" |> Seq.toList |> Tokenize |> ParseFromFile
-    Assert.Equal((AST.PassStatement(0u, 0u), [ ]), result)
+    Assert.Equal((AST.PassStatement(0u, 4u), [ ]), result)
 
 [<Fact>]
 let ``Statement: Empty raise statementt`` () =
     let result = "raise; pass" |> Seq.toList |> Tokenize |> ParseFromFile
-    Assert.Equal(( AST.SimpleStatementList(0u, 0u, [ AST.RaiseStatement(0u, 5u, AST.Empty, AST.Empty); AST.PassStatement(7u, 0u) ]), [ ]), result)
+    Assert.Equal(( AST.SimpleStatementList(0u, 11u, [ AST.RaiseStatement(0u, 5u, AST.Empty, AST.Empty); AST.PassStatement(7u, 11u) ]), [ ]), result)
     
 [<Fact>]
 let ``Statement: Empty raise with one argument statementt`` () =
     let result = "raise a" |> Seq.toList |> Tokenize |> ParseFromFile
-    Assert.Equal((AST.RaiseStatement(0u, 0u, AST.Name(6u, 7u, "a"), AST.Empty), [ ]), result)
+    Assert.Equal((AST.RaiseStatement(0u, 7u, AST.Name(6u, 7u, "a"), AST.Empty), [ ]), result)
     
 [<Fact>]
 let ``Statement: Empty raise with two argument statementt`` () =
     let result = "raise a from b" |> Seq.toList |> Tokenize |> ParseFromFile
-    Assert.Equal((AST.RaiseStatement(0u, 0u, AST.Name(6u, 7u, "a"), AST.Name(13u, 14u, "b")), [ ]), result)
+    Assert.Equal((AST.RaiseStatement(0u, 14u, AST.Name(6u, 7u, "a"), AST.Name(13u, 14u, "b")), [ ]), result)
     
 [<Fact>]
 let ``Statement: Empty assert with one argument statementt`` () =
     let result = "assert a" |> Seq.toList |> Tokenize |> ParseFromFile
-    Assert.Equal((AST.AssertStatement(0u, 0u, AST.Name(7u, 8u, "a"), AST.Empty), [ ]), result)
+    Assert.Equal((AST.AssertStatement(0u, 8u, AST.Name(7u, 8u, "a"), AST.Empty), [ ]), result)
     
 [<Fact>]
 let ``Statement: Empty assert with two argument statementt`` () =
     let result = "assert a, b" |> Seq.toList |> Tokenize |> ParseFromFile
-    Assert.Equal((AST.AssertStatement(0u, 0u, AST.Name(7u, 8u, "a"), AST.Name(10u, 11u, "b")), [ ]), result)
+    Assert.Equal((AST.AssertStatement(0u, 11u, AST.Name(7u, 8u, "a"), AST.Name(10u, 11u, "b")), [ ]), result)
     
 [<Fact>]
 let ``Statement: break statementt`` () =
     let result = "break" |> Seq.toList |> Tokenize |> ParseFromFile
-    Assert.Equal((AST.BreakStatement(0u, 0u), [ ]), result)
+    Assert.Equal((AST.BreakStatement(0u, 5u), [ ]), result)
     
 [<Fact>]
 let ``Statement: continue statementt`` () =
     let result = "continue" |> Seq.toList |> Tokenize |> ParseFromFile
-    Assert.Equal((AST.ContinueStatement(0u, 0u), [ ]), result)
+    Assert.Equal((AST.ContinueStatement(0u, 8u), [ ]), result)

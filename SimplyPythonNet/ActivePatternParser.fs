@@ -2,6 +2,7 @@
 
 
 type Symbol =
+    | EndOfFile of uint
     | Newline of uint
     | Indent of uint
     | Dedent of uint
@@ -177,6 +178,7 @@ let GetStartPosition (stream : SymbolStream) : uint =
     | Symbol.Comma(s, _) :: _ -> s
     | Symbol.Power(s, _) :: _ -> s
     | Symbol.Multiply(s, _) :: _ -> s
+    | Symbol.EndOfFile s :: _ -> s
     | _ -> 0u
     
 let GetEndPosition (stream : SymbolStream) : uint =
@@ -1006,6 +1008,8 @@ let Tokenize(text: char list) : SymbolStream =
             |   '#' ::  ' ' :: 't' :: 'y' :: 'p' :: 'e' ::':' :: rest, _    -> source <- rest
             |   '#' ::  rest, _  -> source <- rest
             |   _ -> failwith "Unknown symbol!"
+    
+    elements <- Symbol.EndOfFile(size) :: elements
     
     List.rev elements
 
@@ -1857,4 +1861,7 @@ let Parse(stream : SymbolStream) : NodeTree =
 let ParseFromFile(stream : SymbolStream) : NodeTree =
     match stream with
     | [] -> AST.Empty, []
-    | StatementList(ast, rest) -> ast, rest
+    | StatementList(ast, rest) ->
+            match rest with
+            |   Symbol.EndOfFile _ :: rest2 -> ast, rest2
+            |   _ -> failwith "Expecting end of file!"
