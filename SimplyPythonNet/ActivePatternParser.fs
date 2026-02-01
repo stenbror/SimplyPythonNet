@@ -153,6 +153,7 @@ type AST =
     | ForGenerator of uint * uint * AST * AST * AST List
     | IfGenerator of uint * uint * AST
     | AssignmentExpression of uint * uint * AST * AST
+    | StatementList of uint * uint * AST list
     
 type SymbolStream = Symbol list
 
@@ -642,13 +643,13 @@ let (|Digit|_|) (text: char list) : (char * char list) option =
     |   NonZeroDigit(t, rest) -> Some(t, rest)
     |   _ -> Option.None
     
-let (|Imaginary|_|) (text: char list) : (char list) option =
+let (|Imaginary|_|) (text: char list) : char list option =
     match text with
     |   'j' :: rest -> Some(rest)
     |   'J' :: rest -> Some(rest)
     |   _ -> Option.None
     
-let (|Exponent|_|) (text: char list) : (char list) option =
+let (|Exponent|_|) (text: char list) : char list option =
     match text with
     |   'e' :: rest -> Some(rest)
     |   'E' :: rest -> Some(rest)
@@ -1117,7 +1118,7 @@ and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
                                     rest_again <- rest10
                                     false
                             | _ -> failwith "Expecting a single expression element in dictionary or set before comprehension!"
-                    | Symbol.Multiply(_) :: rest2 ->
+                    | Symbol.Multiply _ :: rest2 ->
                             let element, rest3 = match rest2 with | StarNamedExpression(s, e) -> s, e
                             rest_again <- rest3
                             elements <- element :: elements
@@ -1568,7 +1569,6 @@ and  (|LambdaName|_|) (stream : SymbolStream) : NodeTree option =
 (* Generators pattern *)
 
 and (|ForIfClause|_|) (stream : SymbolStream) : NodeTree option =
-    let mutable res = Option.None
     let mutable rest_again = stream
     let mutable elements = []
     let mutable left = AST.Empty
@@ -1646,6 +1646,48 @@ and (|ForIfClauseList|_|) (stream : SymbolStream) : NodeTree option =
 
 and (|StarTargetsList|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
+    
+    
+    
+    
+(* Statement patterns *)
+
+let rec (|Statement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   CompoundStatement(ast, rest) -> Some(ast, rest)
+    |   SimpleStatementList(ast, rest) -> Some(ast, rest)
+    |   _ ->    Option.None
+    
+and (|StatementList|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    let mutable elements = []
+    let mutable rest_final = stream
+    
+    let first, rest = match stream with |   Statement(ast, rest) -> ast, rest | _ -> failwith "Expecting statement in statement list"
+    elements <- first :: elements
+    rest_final <- rest
+    
+    while   match rest_final with
+            |   Statement(ast, rest2) ->
+                    elements <- ast :: elements
+                    rest_final <- rest2
+                    true
+            |   _ -> false
+            do ()
+    
+    match elements.Length with
+    | 1 -> elements.Head, rest_final
+    | _ -> AST.StatementList(s, GetStartPosition rest_final, List.rev elements), rest_final
+    
+and (|SimpleStatementList|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+and (|CompoundStatement|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+    
+    
+    
 
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
