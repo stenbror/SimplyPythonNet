@@ -164,6 +164,13 @@ type AST =
     | GlobalStatement of uint * uint * AST list
     | NonlocalStatement of uint * uint * AST list
     | ReturnStatement of uint * uint * AST
+    | DelStatement of uint * uint * AST
+    | StarTargetList of uint * uint * AST list
+    | DelTupleTarget of uint * uint * AST
+    | DelListTarget of uint * uint * AST
+    | DelTarget of uint * uint * AST * AST List
+    | SliceList of uint * uint * AST list
+    | Slice of uint * uint * AST * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -1046,6 +1053,31 @@ and (|Strings|_|) (stream : SymbolStream) : NodeTree option =
             Some(AST.String(s, GetStartPosition restFinal, res), restFinal)
     |   _ -> Option.None
     
+and (|SliceList|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    let mutable elements = []
+    let mutable rest_final = stream
+    let right, rest = match stream with |   Slice(s2, r) -> s2, r
+    elements <- right :: elements
+    rest_final <- rest
+    
+    while   match rest_final with
+            |   Symbol.Comma _ :: Symbol.RightSquareBracket _ :: _  :: _ -> false
+            |   Symbol.Comma _ :: rest2 ->
+                    let right2, rest3 = match rest2 with |   Slice(s2, r) -> s2, r
+                    elements <- right2 :: elements
+                    rest_final <- rest3
+                    true
+            |   _ -> false
+            do ()
+    
+    match elements.Length with
+    | 1 -> right, rest
+    | _ -> AST.SliceList(s, GetStartPosition rest, List.rev elements), rest
+    
+and (|Slice|) (stream : SymbolStream) : NodeTree =
+    AST.Empty, stream
+ 
 and (|TupleOrGeneratorExpression|_|) (stream : SymbolStream) : NodeTree option =
     let mutable elements = []
     let mutable rest_again = stream
@@ -1658,11 +1690,72 @@ and (|ForIfClauseList|_|) (stream : SymbolStream) : NodeTree option =
 (* Generic targets pattern *)    
 
 and (|StarTargetsList|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+    Some(AST.Empty, stream)
     
+(* Del targets pattern *)
     
+and (|DelTargetList|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    let mutable elements = []
+    let mutable rest_final = stream
+    let right, rest = match stream with |   DelTarget(s2, r) -> s2, r
+    elements <- right :: elements
+    rest_final <- rest
     
+    while   match rest_final with
+            |   Symbol.Comma _ :: Symbol.Newline _ :: _  |   Symbol.Comma _ :: Symbol.SemiColon _ :: _ -> false
+            |   Symbol.Comma _ :: rest2 ->
+                    let right2, rest3 = match rest2 with |   DelTarget(s2, r) -> s2, r
+                    elements <- right2 :: elements
+                    rest_final <- rest3
+                    true
+            |   _ -> false
+            do ()
     
+    match elements.Length with
+    | 1 -> right, rest
+    | _ -> AST.StarTargetList(s, GetStartPosition rest, List.rev elements), rest
+    
+and (|DelTarget|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    let left, rest = match stream with |   DelTargetAtom(s2, r) -> s2, r
+    let mutable elements = []
+    let mutable rest_final = rest
+    
+    while   match rest_final with
+            |   Symbol.Period _ :: Symbol.Name(s, e, t) :: rest ->
+                    elements <- AST.Name(s, e, t) :: elements
+                    rest_final <- rest
+                    true
+            |   Symbol.LeftSquareBracket(s, _) :: rest ->
+                    let right, rest2 = match rest with |   SliceList(ast, rest3) -> ast, rest3
+                    elements <- right :: elements
+                    rest_final <- rest2
+                    true
+            |   _ -> false
+            do ()
+
+    match elements.Length with
+    | 0 -> left, rest_final
+    | _ -> AST.DelTarget(s, GetStartPosition rest_final, left, List.rev elements), rest_final
+    
+and (|DelTargetAtom|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   Symbol.Name(s, e2, t2) :: rest -> AST.Name(s, e2, t2), rest
+    |   Symbol.LeftParenthesis(s, _) :: Symbol.RightParenthesis _ :: rest -> AST.DelTupleTarget(s, GetStartPosition rest, AST.Empty ), rest
+    |   Symbol.LeftParenthesis (s, _) :: rest ->
+            let right, rest2 = match rest with |   DelTargetList(s2, r) -> s2, r
+            match rest2 with
+            |   Symbol.RightParenthesis _ :: rest3 -> AST.DelTupleTarget(s, GetStartPosition rest3, right), rest3
+            |   _ -> failwith "Expecting ')' after tuple in del target"
+    |   Symbol.LeftSquareBracket (s, _) :: rest ->
+            let right, rest2 = match rest with |   DelTargetList(s2, r) -> s2, r
+            match rest2 with
+            |   Symbol.RightParenthesis _ :: rest3 -> AST.DelListTarget(s, GetStartPosition rest3, right), rest3
+            |   _ -> failwith "Expecting ')' after tuple in del target"
+    |   _ -> failwith "Expecting variable name in del target"
+
+
 (* Statement patterns *)
 
 let rec (|Statement|_|) (stream : SymbolStream) : NodeTree option =
@@ -1786,10 +1879,14 @@ and (|PassStatement|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|DelStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Del(s, _) :: rest ->
+            let right, rest2 = match rest with |   DelTargetList(ast, rest3) -> ast, rest3
+            Some(AST.DelStatement(s, GetStartPosition rest2, right), rest2)
     |   _ ->    Option.None
     
 and (|YieldStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Yield _ :: _ -> match stream with |   YieldExpression(ast, rest) -> Some(ast, rest) | _ -> Option.None
     |   _ ->    Option.None
     
 and (|AssertStatement|_|) (stream : SymbolStream) : NodeTree option =
