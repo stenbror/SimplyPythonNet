@@ -939,3 +939,13 @@ let ``Statement: Empty assert with one argument statementt`` () =
 let ``Statement: Empty assert with two argument statementt`` () =
     let result = "assert a, b" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.AssertStatement(0u, 0u, AST.Name(7u, 8u, "a"), AST.Name(10u, 11u, "b")), [ ]), result)
+    
+[<Fact>]
+let ``Statement: break statementt`` () =
+    let result = "break" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.BreakStatement(0u, 0u), [ ]), result)
+    
+[<Fact>]
+let ``Statement: continue statementt`` () =
+    let result = "continue" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.ContinueStatement(0u, 0u), [ ]), result)

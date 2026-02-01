@@ -1792,10 +1792,12 @@ and (|AssertStatement|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|BreakStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Break(s, _) :: rest -> Some(AST.BreakStatement(s, GetStartPosition rest), rest)
     |   _ ->    Option.None
     
 and (|ContinueStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Continue(s, _) :: rest -> Some(AST.ContinueStatement(s, GetStartPosition rest), rest)
     |   _ ->    Option.None
     
 and (|GlobalStatement|_|) (stream : SymbolStream) : NodeTree option =
