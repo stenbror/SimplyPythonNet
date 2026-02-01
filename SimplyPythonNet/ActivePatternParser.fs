@@ -155,6 +155,8 @@ type AST =
     | AssignmentExpression of uint * uint * AST * AST
     | StatementList of uint * uint * AST list
     | SimpleStatementList of uint * uint * AST list
+    | RaiseStatement of uint * uint * AST * AST
+    | PassStatement of uint * uint
     
 type SymbolStream = Symbol list
 
@@ -1749,10 +1751,21 @@ and (|ImportStatement|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|RaiseStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Raise(s, _) ::  rest ->
+            match rest with
+            |   Symbol.SemiColon _ :: _ | Symbol.Newline _ :: _ -> Some(AST.RaiseStatement(s, GetStartPosition rest, AST.Empty, AST.Empty), rest)
+            |   _ ->
+                let left, rest2 = match rest with |   Expression(ast, rest3) -> ast, rest3
+                match rest2 with
+                |   Symbol.From _ :: rest3 ->
+                        let right, rest4 = match rest3 with |   Expression(ast, rest) -> ast, rest
+                        Some(AST.RaiseStatement(s, GetStartPosition rest4, left, right), rest4)
+                |   _ ->    Some(AST.RaiseStatement(s, GetStartPosition rest2, left, AST.Empty), rest2)
     |   _ ->    Option.None
     
 and (|PassStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Pass(s, _) :: rest -> Some(AST.PassStatement(s, GetStartPosition rest), rest)
     |   _ ->    Option.None
     
 and (|DelStatement|_|) (stream : SymbolStream) : NodeTree option =
@@ -1828,3 +1841,8 @@ and (|MatchStatement|_|) (stream : SymbolStream) : NodeTree option =
 let Parse(stream : SymbolStream) : NodeTree =
     match stream with
     | Expression(ast, rest) -> ast, rest
+
+let ParseFromFile(stream : SymbolStream) : NodeTree =
+    match stream with
+    | [] -> AST.Empty, []
+    | StatementList(ast, rest) -> ast, rest

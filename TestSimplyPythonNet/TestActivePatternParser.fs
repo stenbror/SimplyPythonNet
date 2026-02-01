@@ -906,3 +906,26 @@ let ``Empty tuple`` () =
 let ``Empty list`` () =
     let result = "[];" |> Seq.toList |> Tokenize |> Parse
     Assert.Equal((AST.List(0u, 2u, []), [ Symbol.SemiColon(2u, 3u) ]), result)
+    
+    
+(* Statement pattern tests *)
+
+[<Fact>]
+let ``Statement: Pass statementt`` () =
+    let result = "pass" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.PassStatement(0u, 0u), [ ]), result)
+
+[<Fact>]
+let ``Statement: Empty raise statementt`` () =
+    let result = "raise; pass" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal(( AST.SimpleStatementList(0u, 0u, [ AST.RaiseStatement(0u, 5u, AST.Empty, AST.Empty); AST.PassStatement(7u, 0u) ]), [ ]), result)
+    
+[<Fact>]
+let ``Statement: Empty raise with one argument statementt`` () =
+    let result = "raise a" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.RaiseStatement(0u, 0u, AST.Name(6u, 7u, "a"), AST.Empty), [ ]), result)
+    
+[<Fact>]
+let ``Statement: Empty raise with two argument statementt`` () =
+    let result = "raise a from b" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.RaiseStatement(0u, 0u, AST.Name(6u, 7u, "a"), AST.Name(13u, 14u, "b")), [ ]), result)
