@@ -1710,7 +1710,78 @@ and (|SimpleStatementList|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|SimpleStatement|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+    match stream with
+    |   AssignmentStatement(ast, rest) -> Some(ast, rest)
+    |   TypeAliasStatement(ast, rest) -> Some(ast, rest)
+    |   StarExpression(ast, rest) -> Some(ast, rest)
+    |   ReturnStatement(ast, rest) -> Some(ast, rest)
+    |   ImportStatement(ast, rest) -> Some(ast, rest)
+    |   RaiseStatement(ast, rest) -> Some(ast, rest)
+    |   PassStatement(ast, rest) -> Some(ast, rest)
+    |   DelStatement(ast, rest) -> Some(ast, rest)
+    |   YieldStatement(ast, rest) -> Some(ast, rest)
+    |   AssertStatement(ast, rest) -> Some(ast, rest)
+    |   BreakStatement(ast, rest) -> Some(ast, rest)
+    |   ContinueStatement(ast, rest) -> Some(ast, rest)
+    |   GlobalStatement(ast, rest) -> Some(ast, rest)
+    |   NonLocalStatement(ast, rest) -> Some(ast, rest)
+    |   _ ->    Option.None
+    
+and (|AssignmentStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|TypeAliasStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|StarExpression|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|ReturnStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|ImportStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|RaiseStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|PassStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|DelStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|YieldStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|AssertStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|BreakStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|ContinueStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|GlobalStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|NonLocalStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
     
 and (|CompoundStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
