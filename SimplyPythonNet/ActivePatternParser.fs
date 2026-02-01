@@ -1713,7 +1713,42 @@ and (|SimpleStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
     
 and (|CompoundStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   FunctionStatement(ast, rest) -> Some(ast, rest)
+    |   IfStatement(ast, rest) -> Some(ast, rest)
+    |   WhileStatement(ast, rest) -> Some(ast, rest)
+    |   ForStatement(ast, rest) -> Some(ast, rest)
+    |   ClassStatement(ast, rest) -> Some(ast, rest)
+    |   TryStatement(ast, rest) -> Some(ast, rest)
+    |   WithStatement(ast, rest) -> Some(ast, rest)
+    |   MatchStatement(ast, rest) -> Some(ast, rest)
+    |   _ ->    Option.None
+    
+and (|FunctionStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
+    
+and (|IfStatement|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+and (|ClassStatement|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+and (|WithStatement|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+and (|ForStatement|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+and (|TryStatement|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+and (|WhileStatement|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+and (|MatchStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Name(_, _, "match") :: rest -> Option.None
+    |   _ ->    Option.None
     
     
     
