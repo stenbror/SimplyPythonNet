@@ -157,6 +157,9 @@ type AST =
     | SimpleStatementList of uint * uint * AST list
     | RaiseStatement of uint * uint * AST * AST
     | PassStatement of uint * uint
+    | AssertStatement of uint * uint * AST * AST
+    | BreakStatement of uint * uint
+    | ContinueStatement of uint * uint
     
 type SymbolStream = Symbol list
 
@@ -1778,6 +1781,13 @@ and (|YieldStatement|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|AssertStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Assert(s, _) :: rest ->
+            let left, rest2 = match rest with |   Expression(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.Comma _ :: rest3 ->
+                    let right, rest4 = match rest3 with |   Expression(ast, rest) -> ast, rest
+                    Some(AST.AssertStatement(s, GetStartPosition rest4, left, right), rest4)
+            |   _ -> Some(AST.AssertStatement(s, GetStartPosition rest2, left, AST.Empty), rest2)
     |   _ ->    Option.None
     
 and (|BreakStatement|_|) (stream : SymbolStream) : NodeTree option =

@@ -929,3 +929,13 @@ let ``Statement: Empty raise with one argument statementt`` () =
 let ``Statement: Empty raise with two argument statementt`` () =
     let result = "raise a from b" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.RaiseStatement(0u, 0u, AST.Name(6u, 7u, "a"), AST.Name(13u, 14u, "b")), [ ]), result)
+    
+[<Fact>]
+let ``Statement: Empty assert with one argument statementt`` () =
+    let result = "assert a" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.AssertStatement(0u, 0u, AST.Name(7u, 8u, "a"), AST.Empty), [ ]), result)
+    
+[<Fact>]
+let ``Statement: Empty assert with two argument statementt`` () =
+    let result = "assert a, b" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.AssertStatement(0u, 0u, AST.Name(7u, 8u, "a"), AST.Name(10u, 11u, "b")), [ ]), result)
