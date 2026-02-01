@@ -154,6 +154,7 @@ type AST =
     | IfGenerator of uint * uint * AST
     | AssignmentExpression of uint * uint * AST * AST
     | StatementList of uint * uint * AST list
+    | SimpleStatementList of uint * uint * AST list
     
 type SymbolStream = Symbol list
 
@@ -1680,6 +1681,35 @@ and (|StatementList|) (stream : SymbolStream) : NodeTree =
     | _ -> AST.StatementList(s, GetStartPosition rest_final, List.rev elements), rest_final
     
 and (|SimpleStatementList|_|) (stream : SymbolStream) : NodeTree option =
+    let s = GetStartPosition stream
+    let mutable elements = []
+    let mutable rest_final = stream
+    
+    match stream with
+    |   SimpleStatement(ast, rest) ->
+        elements <- ast :: elements
+        rest_final <- rest
+        
+        while   match rest_final with
+                | Symbol.SemiColon _ :: Symbol.Newline _ :: rest2 ->
+                    rest_final <- rest2
+                    false
+                | Symbol.SemiColon _ :: rest2 ->
+                    match rest2 with
+                    |   SimpleStatement(ast2, rest3) ->
+                            elements <- ast2 :: elements
+                            rest_final <- rest3
+                            true
+                    |   _ -> failwith "Expecting simple statement after ';' in statement list"   
+                | _ -> false
+                do ()
+
+        match elements.Length with
+        | 1 -> Some(elements.Head, rest_final)
+        | _ -> Some(AST.SimpleStatementList(s, GetStartPosition rest_final, List.rev elements), rest_final)
+    |   _ ->    Option.None
+    
+and (|SimpleStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
     
 and (|CompoundStatement|_|) (stream : SymbolStream) : NodeTree option =
