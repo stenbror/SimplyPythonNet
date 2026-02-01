@@ -20,6 +20,8 @@
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: Pass statementt&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Empty list&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Tokenizer: String with double quote&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: return statement without element&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: return statement with one element&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3baf6335_002D3aab_002D41bd_002Dbbe0_002D46947f246af7/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Atom rule: strings" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
@@ -27,5 +29,15 @@
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Atom rule: strings&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Atom rule: raw strings&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Empty Set or Dictionary&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a468d408_002Dff00_002D404a_002D8d16_002Ddd1f67e0d3f5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Statement: return statement without element" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: return statement without element&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=fb3d5dba_002D5b71_002D449d_002Daf26_002D415d2b6796c3/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Statement: return statement without element #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::F93EC05D-D819-4C21-AA0C-D236978FB375::net10.0::TestSimplyPythonNet.TestActivePatternParser.Statement: return statement without element&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

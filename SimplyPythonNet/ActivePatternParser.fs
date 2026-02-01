@@ -161,6 +161,9 @@ type AST =
     | AssertStatement of uint * uint * AST * AST
     | BreakStatement of uint * uint
     | ContinueStatement of uint * uint
+    | GlobalStatement of uint * uint * AST list
+    | NonlocalStatement of uint * uint * AST list
+    | ReturnStatement of uint * uint * AST
     
 type SymbolStream = Symbol list
 
@@ -1750,6 +1753,12 @@ and (|StarExpression|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|ReturnStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Return (s, _) :: rest ->
+            match rest with
+            | Symbol.Newline _ :: _ | Symbol.SemiColon _ :: _ -> Some(AST.ReturnStatement(s, GetStartPosition rest, AST.Empty), rest)
+            | _ ->
+                let right, rest2 = match rest with |   StarExpressions(ast, rest3) -> ast, rest3
+                Some(AST.ReturnStatement(s, GetStartPosition rest2, right), rest2)
     |   _ ->    Option.None
     
 and (|ImportStatement|_|) (stream : SymbolStream) : NodeTree option =
@@ -1806,10 +1815,42 @@ and (|ContinueStatement|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|GlobalStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Global(s, _) :: rest ->
+            let mutable elements = []
+            let mutable rest_final = rest
+            match rest with
+            |   Symbol.Name(s2, e2, t2) :: rest2 ->
+                elements <- AST.Name(s2, e2, t2) :: elements
+                rest_final <- rest2
+                while   match rest_final with
+                        |   Symbol.Comma _ :: Symbol.Name(s3, e3, t3) :: rest3 ->
+                                elements <- AST.Name(s3, e3, t3) :: elements
+                                rest_final <- rest3
+                                true
+                        |   _ -> false
+                    do ()
+            |   _ -> failwith "Expecting variable name in global statement"
+            Some(AST.GlobalStatement(s, GetStartPosition rest_final, List.rev elements), rest_final)
     |   _ ->    Option.None
     
 and (|NonLocalStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   Symbol.Nonlocal(s, _) :: rest ->
+            let mutable elements = []
+            let mutable rest_final = rest
+            match rest with
+            |   Symbol.Name(s2, e2, t2) :: rest2 ->
+                elements <- AST.Name(s2, e2, t2) :: elements
+                rest_final <- rest2
+                while   match rest_final with
+                        |   Symbol.Comma _ :: Symbol.Name(s3, e3, t3) :: rest3 ->
+                                elements <- AST.Name(s3, e3, t3) :: elements
+                                rest_final <- rest3
+                                true
+                        |   _ -> false
+                    do ()
+            |   _ -> failwith "Expecting variable name in nonlocal statement"
+            Some(AST.NonlocalStatement(s, GetStartPosition rest_final, List.rev elements), rest_final)
     |   _ ->    Option.None
     
 and (|CompoundStatement|_|) (stream : SymbolStream) : NodeTree option =

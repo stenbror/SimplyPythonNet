@@ -911,41 +911,61 @@ let ``Empty list`` () =
 (* Statement pattern tests *)
 
 [<Fact>]
-let ``Statement: Pass statementt`` () =
+let ``Statement: Pass statement`` () =
     let result = "pass" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.PassStatement(0u, 4u), [ ]), result)
 
 [<Fact>]
-let ``Statement: Empty raise statementt`` () =
+let ``Statement: Empty raise statement`` () =
     let result = "raise; pass" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal(( AST.SimpleStatementList(0u, 11u, [ AST.RaiseStatement(0u, 5u, AST.Empty, AST.Empty); AST.PassStatement(7u, 11u) ]), [ ]), result)
     
 [<Fact>]
-let ``Statement: Empty raise with one argument statementt`` () =
+let ``Statement: Empty raise with one argument statement`` () =
     let result = "raise a" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.RaiseStatement(0u, 7u, AST.Name(6u, 7u, "a"), AST.Empty), [ ]), result)
     
 [<Fact>]
-let ``Statement: Empty raise with two argument statementt`` () =
+let ``Statement: Empty raise with two argument statement`` () =
     let result = "raise a from b" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.RaiseStatement(0u, 14u, AST.Name(6u, 7u, "a"), AST.Name(13u, 14u, "b")), [ ]), result)
     
 [<Fact>]
-let ``Statement: Empty assert with one argument statementt`` () =
+let ``Statement: Empty assert with one argument statement`` () =
     let result = "assert a" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.AssertStatement(0u, 8u, AST.Name(7u, 8u, "a"), AST.Empty), [ ]), result)
     
 [<Fact>]
-let ``Statement: Empty assert with two argument statementt`` () =
+let ``Statement: Empty assert with two argument statement`` () =
     let result = "assert a, b" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.AssertStatement(0u, 11u, AST.Name(7u, 8u, "a"), AST.Name(10u, 11u, "b")), [ ]), result)
     
 [<Fact>]
-let ``Statement: break statementt`` () =
+let ``Statement: break statement`` () =
     let result = "break" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.BreakStatement(0u, 5u), [ ]), result)
     
 [<Fact>]
-let ``Statement: continue statementt`` () =
+let ``Statement: continue statement`` () =
     let result = "continue" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.ContinueStatement(0u, 8u), [ ]), result)
+    
+[<Fact>]
+let ``Statement: global statement with one element`` () =
+    let result = "global a" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.GlobalStatement(0u, 8u, [ AST.Name(7u, 8u, "a") ]), [ ]), result)
+    
+[<Fact>]
+let ``Statement: global statement with two element`` () =
+    let result = "global a,b" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.GlobalStatement(0u, 10u, [ AST.Name(7u, 8u, "a"); AST.Name(9u, 10u, "b") ]), [ ]), result)
+    
+[<Fact>]
+let ``Statement: return statement without element`` () =
+    let result = "return; pass" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal(( AST.SimpleStatementList(0u, 12u, [ AST.ReturnStatement(0u, 6u, AST.Empty); AST.PassStatement(8u, 12u) ]), [ ]), result)
+    
+[<Fact>]
+let ``Statement: return statement with one element`` () =
+    let result = "return a" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.ReturnStatement(0u, 8u, AST.Name(7u, 8u, "a") ), [ ]), result)
