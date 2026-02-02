@@ -1076,7 +1076,30 @@ and (|SliceList|) (stream : SymbolStream) : NodeTree =
     | _ -> AST.SliceList(s, GetStartPosition rest, List.rev elements), rest
     
 and (|Slice|) (stream : SymbolStream) : NodeTree =
-    AST.Empty, stream
+    match stream with
+    |   Symbol.Colon (s, _) :: Symbol.Colon _ :: Symbol.RightSquareBracket _ :: rest
+    |   Symbol.Colon (s, _) :: Symbol.Colon _ :: Symbol.Comma _ :: rest -> AST.Slice(s, GetStartPosition rest, AST.Empty, AST.Empty, AST.Empty), rest
+    |   Symbol.Colon (s, _) :: Symbol.RightSquareBracket _ :: rest
+    |   Symbol.Colon (s, _) :: Symbol.Comma _ :: rest -> AST.Slice(s, GetStartPosition rest, AST.Empty, AST.Empty, AST.Empty), rest
+    |   Symbol.Name(s, e, r) :: Symbol.ColonEqual _ :: rest ->
+                let right, rest2 = match rest with |   Expression(s2, r2) -> s2, r2
+                AST.Slice(s, GetStartPosition rest2, AST.NamedAssignment(s, GetStartPosition rest2, AST.Name(s, e, r), right), AST.Empty, AST.Empty), rest2
+    |   _ ->
+            let s2 = GetStartPosition stream
+            let left, rest = match stream with |   Expression(s2, r2) -> s2, r2
+            match rest with
+            |   Symbol.Colon (s, _) :: Symbol.Colon _ ::  rest2 ->
+                    let next, rest3 = match rest2 with |   Expression(s2, r2) -> s2, r2
+                    AST.Slice(s, GetStartPosition rest3, left, AST.Empty, next), rest3
+            |   Symbol.Colon (s, _) :: rest2 ->
+                        let right, rest3 = match rest2 with |   Expression(s2, r2) -> s2, r2
+                        match rest3 with
+                        |   Symbol.RightSquareBracket _ :: rest4 | Symbol.Comma _ :: rest4 -> AST.Slice(s, GetStartPosition rest4, left, right, AST.Empty), rest4
+                        |   _ ->
+                            let next, rest5 = match rest3 with |   Expression(s2, r2) -> s2, r2
+                            AST.Slice(s, GetStartPosition rest5, left, right, next), rest5
+            |   Symbol.Comma _ :: rest2 | Symbol.RightSquareBracket _ :: rest2 -> AST.Slice(s2, GetStartPosition rest2, left, AST.Empty, AST.Empty), rest2
+            |   _ -> failwith "Expecting colon in slice!"
  
 and (|TupleOrGeneratorExpression|_|) (stream : SymbolStream) : NodeTree option =
     let mutable elements = []
