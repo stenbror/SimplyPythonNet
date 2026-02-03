@@ -171,6 +171,10 @@ type AST =
     | DelTarget of uint * uint * AST * AST List
     | SliceList of uint * uint * AST list
     | Slice of uint * uint * AST * AST * AST
+    | DottedName of uint * uint * AST list
+    | DottedAsName of uint * uint * AST * AST
+    | DottedAsNameList of uint * uint * AST list
+    | ImportName of uint * uint * AST
     
 type SymbolStream = Symbol list
 
@@ -1878,6 +1882,39 @@ and (|ReturnStatement|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|ImportStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   ImportName(ast, rest) -> Some(ast, rest)
+    |   ImportFrom(ast, rest) -> Some(ast, rest)
+    |   _ ->    Option.None
+    
+and (|ImportName|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   _ ->    Option.None
+    
+and (|DottedAsNameList|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   _ ->    AST.Empty,stream
+    
+and (|DottedAsName|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   _ ->    AST.Empty, stream
+    
+and (|DottedName|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   Symbol.Name(s, e, t) :: rest ->
+                let mutable elements = [ AST.Name(s, e, t)  ]
+                let mutable rest_final = rest
+                while   match rest_final with
+                        |   Symbol.Period _ :: Symbol.Name(s2, e2, t2) :: rest2 ->
+                                elements <- AST.Name(s2, e2, t2) :: elements
+                                rest_final <- rest2
+                                true
+                        | _ -> false
+                    do ()
+                AST.DottedName(s, GetStartPosition rest_final, List.rev elements), rest_final
+    |   _ ->    failwith "Expecting variable name in dotted name"
+    
+and (|ImportFrom|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
     |   _ ->    Option.None
     
