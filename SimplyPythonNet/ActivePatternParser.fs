@@ -175,6 +175,10 @@ type AST =
     | DottedAsName of uint * uint * AST * AST
     | DottedAsNameList of uint * uint * AST list
     | ImportName of uint * uint * AST
+    | ImportFromAsName of uint * uint * AST * AST
+    | ImportFromAsNameList of uint * uint * AST list
+    | ImportFrom of uint * uint * uint * AST * AST
+    | ImportFromTargetList of uint * uint * AST list
     
 type SymbolStream = Symbol list
 
@@ -1888,9 +1892,13 @@ and (|ImportStatement|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|ImportName|_|) (stream : SymbolStream) : NodeTree option =
+    let s = GetStartPosition stream
     match stream with
+    |   Symbol.Import _ :: rest ->
+            let right, rest2 = match rest with |   DottedAsNameList(ast, rest3) -> ast, rest3
+            Some(AST.ImportName(s, GetStartPosition rest2, right), rest2)
     |   _ ->    Option.None
-    
+            
 and (|DottedAsNameList|) (stream : SymbolStream) : NodeTree =
     let mutable elements = []
     let mutable rest_final = stream
@@ -1938,6 +1946,20 @@ and (|DottedName|) (stream : SymbolStream) : NodeTree =
 and (|ImportFrom|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
     |   _ ->    Option.None
+    
+and (|ImportFromTargets|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   _ ->    AST.Empty, stream
+    
+and (|ImportFromAsNameList|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   _ ->    AST.Empty, stream
+    
+and (|ImportFromAsName|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   Symbol.Name(s, e, t) :: Symbol.As _ :: Symbol.Name(s2, e2, t2) :: rest ->   AST.ImportFromAsName(s, GetStartPosition rest, AST.Name(s, e, t), AST.Name(s2, e2, t2)), rest
+    |   Symbol.Name(s, e, t) :: rest -> AST.Name(s, e, t), rest
+    |   _ ->    failwith "Expecting variable name in import from statement"
     
 and (|RaiseStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
