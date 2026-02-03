@@ -1944,16 +1944,64 @@ and (|DottedName|) (stream : SymbolStream) : NodeTree =
     |   _ ->    failwith "Expecting variable name in dotted name"
     
 and (|ImportFrom|_|) (stream : SymbolStream) : NodeTree option =
+    let s = GetStartPosition stream
     match stream with
+    |   Symbol.From _ :: rest ->
+            let mutable dots = 0u
+            let mutable rest_final = rest
+            
+            while   match rest_final with
+                    |   Symbol.Period _ :: rest2 -> dots <- dots + 1u; rest_final <- rest2; true
+                    |   Symbol.Ellipsis _ :: rest2 -> dots <- dots + 3u; rest_final <- rest2; true
+                    |   _ -> false
+                do ()
+                
+            match rest_final, dots  with
+            |   Symbol.Import _ :: _ , 0u -> failwith "Expecting dotted name after 'from' in 'import from'"
+            |   Symbol.Import _ :: rest , _ ->
+                    let right, rest2 = match rest with |   ImportFromTargets(ast, rest3) -> ast, rest3
+                    rest_final <- rest2
+                    Some(AST.ImportFrom(s, GetStartPosition rest_final, dots, AST.Empty, right), rest_final)
+            |   _ ->
+                let left, rest2 = match rest_final with |   DottedName(s, rest3) -> s, rest3
+                rest_final <- rest2
+                match rest_final with
+                |   Symbol.Import _ :: rest3 ->
+                        let right, rest4 = match rest3 with |   ImportFromTargets(ast, rest5) -> ast, rest5
+                        rest_final <- rest4
+                        Some(AST.ImportFrom( s, GetStartPosition rest_final, dots, left, right), rest_final)
+                | _ -> failwith "Expecting 'import' after dotted name in 'import from'"           
     |   _ ->    Option.None
     
 and (|ImportFromTargets|) (stream : SymbolStream) : NodeTree =
     match stream with
-    |   _ ->    AST.Empty, stream
+    | Symbol.LeftParenthesis(s, _) :: rest ->
+            let right, rest2 = match rest with |   ImportFromAsNameList(ast, rest3) -> ast, rest3
+            match rest2 with
+            | Symbol.Comma _ :: Symbol.RightParenthesis _ :: rest3
+            | Symbol.RightParenthesis _ :: rest3 -> right, rest3
+            | _ -> failwith "Expecting ')' or ',' after 'import from' targets"
+    | Symbol.Multiply(s, _) :: rest -> AST.Multiply(s, GetStartPosition rest, AST.Empty, AST.Empty), rest
+    |   _ ->    match stream with |   ImportFromAsNameList(s, rest) -> s, rest
     
 and (|ImportFromAsNameList|) (stream : SymbolStream) : NodeTree =
-    match stream with
-    |   _ ->    AST.Empty, stream
+    let s = GetStartPosition stream
+    let mutable elements = []
+    let mutable rest_final = stream
+    let left, rest = match stream with |   ImportFromAsName(s2, r) -> s2, r
+    elements <- left :: elements
+    rest_final <- rest
+    
+    while   match rest_final with
+            |   Symbol.Comma _ :: rest2 ->
+                let right, rest3 = match rest2 with |   ImportFromAsName(s2, r) -> s2, r
+                elements <- right :: elements
+                rest_final <- rest3
+                true
+            |   _ -> false
+            do ()
+    
+    AST.ImportFromAsNameList(s, GetStartPosition rest_final, List.rev elements), rest_final
     
 and (|ImportFromAsName|) (stream : SymbolStream) : NodeTree =
     match stream with
