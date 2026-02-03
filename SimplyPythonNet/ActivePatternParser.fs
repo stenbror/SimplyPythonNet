@@ -1896,9 +1896,12 @@ and (|DottedAsNameList|) (stream : SymbolStream) : NodeTree =
     |   _ ->    AST.Empty,stream
     
 and (|DottedAsName|) (stream : SymbolStream) : NodeTree =
-    match stream with
-    |   _ ->    AST.Empty, stream
-    
+    let s3 = GetStartPosition stream
+    let right, rest = match stream with |   DottedName(s, rest) -> s, rest
+    match rest with
+    |   Symbol.As _ :: Symbol.Name(s2, e2, t2) :: rest2 -> AST.DottedAsName(s3, GetStartPosition rest2, right, AST.Name(s2, e2, t2)), rest2
+    |   _ -> right, rest
+        
 and (|DottedName|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Name(s, e, t) :: rest ->
@@ -1911,7 +1914,9 @@ and (|DottedName|) (stream : SymbolStream) : NodeTree =
                                 true
                         | _ -> false
                     do ()
-                AST.DottedName(s, GetStartPosition rest_final, List.rev elements), rest_final
+                match elements.Length with
+                | 1 -> elements.Head, rest_final
+                | _ -> AST.DottedName(s, GetStartPosition rest_final, List.rev elements), rest_final
     |   _ ->    failwith "Expecting variable name in dotted name"
     
 and (|ImportFrom|_|) (stream : SymbolStream) : NodeTree option =
