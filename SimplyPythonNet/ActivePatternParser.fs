@@ -1892,8 +1892,24 @@ and (|ImportName|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|DottedAsNameList|) (stream : SymbolStream) : NodeTree =
-    match stream with
-    |   _ ->    AST.Empty,stream
+    let mutable elements = []
+    let mutable rest_final = stream
+    let s = GetStartPosition stream
+    let left, rest = match stream with |   DottedAsName(s2, r) -> s2, r
+    elements <- left :: elements
+    rest_final <- rest
+    while   match stream with
+            |   Symbol.Comma _ :: rest2 ->
+                let right, rest3 = match rest2 with |   DottedAsName(s2, r) -> s2, r
+                elements <- right :: elements
+                rest_final <- rest3
+                true
+            |   _ ->    false
+         do ()
+         
+    match elements.Length with
+    | 1 -> left, rest_final
+    | _ -> AST.DottedAsNameList(s, GetStartPosition rest_final, List.rev elements), rest_final
     
 and (|DottedAsName|) (stream : SymbolStream) : NodeTree =
     let s3 = GetStartPosition stream
