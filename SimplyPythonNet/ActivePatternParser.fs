@@ -179,6 +179,9 @@ type AST =
     | ImportFromAsNameList of uint * uint * AST list
     | ImportFrom of uint * uint * uint * AST * AST
     | ImportFromTargetList of uint * uint * AST list
+    | PrimaryExpression of uint * uint * AST list
+    | DotName of uint * uint * AST
+    | Call of uint * uint * AST
     
 type SymbolStream = Symbol list
 
@@ -1264,8 +1267,43 @@ and (|DictionaryOrSet|_|) (stream : SymbolStream) : NodeTree option =
             Option.None
               
 and (|Primary|) (stream: SymbolStream) : NodeTree =
+    let sx = GetStartPosition stream
     match stream with
-    |   Atom(ast, rest2) -> ast, rest2
+    |   Atom(ast, rest2) ->
+            match rest2 with
+            |   Symbol.Period _ :: rest3 | Symbol.LeftParenthesis _ :: rest3 | Symbol.LeftSquareBracket _ :: rest3 ->
+                    let mutable elements = []
+                    let mutable rest_again = rest2
+                    
+                    while   match rest_again with
+                            |   Symbol.Period (s, _) :: Symbol.Name(s2, e2, t2) :: rest3 ->
+                                    elements <- AST.DotName(s, GetStartPosition rest3, AST.Name(s2, e2, t2)) :: elements
+                                    true
+                            |   Symbol.LeftParenthesis (s, _ ) :: Symbol.RightParenthesis _ :: rest3 ->
+                                    elements <- AST.Call(s, GetStartPosition rest3, AST.Empty) :: elements
+                                    rest_again <- rest3
+                                    true
+                            |   Symbol.LeftParenthesis (s, _) :: rest3 ->
+                                    let right, rest4 = match rest3 with | ArgumentList(e, r) -> e, r
+                                    match rest4 with
+                                    |   Symbol.RightParenthesis _ :: rest5 ->
+                                            elements <- AST.Call(s, GetStartPosition rest5, right) :: elements
+                                            rest_again <- rest5
+                                            true
+                                    |   _ -> failwith "Expecting ')'!"
+                            |   Symbol.LeftSquareBracket (s, _) :: rest3 ->
+                                    let right, rest4 = match rest3 with | SliceList(e, r) -> e, r
+                                    match rest4 with
+                                    |   Symbol.RightSquareBracket _ :: rest5 ->
+                                            elements <- right :: elements
+                                            rest_again <- rest5
+                                            true
+                                    |   _ -> failwith "Expecting ']'!"
+                            |   _ -> false
+                            do ()
+                
+                    AST.PrimaryExpression(sx, GetStartPosition rest_again, List.rev elements), rest_again
+            | _ ->  ast, rest2
     
 and (|AwaitPrimary|) (stream : SymbolStream) : NodeTree =
     match stream with
@@ -1640,6 +1678,11 @@ and  (|LambdaName|_|) (stream : SymbolStream) : NodeTree option =
     |   Symbol.Name(s, e, t) :: rest -> Some(AST.Name(s, e, t), rest)
     |   _ ->    Option.None
     
+    
+    
+    
+and  (|ArgumentList|) (stream : SymbolStream) : NodeTree =
+    AST.Empty, stream
     
     
 (* Generators pattern *)
