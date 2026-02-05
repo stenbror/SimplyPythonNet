@@ -1909,7 +1909,12 @@ and (|SimpleStatement|_|) (stream : SymbolStream) : NodeTree option =
 and (|AssignmentStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
     |   _ ->    Option.None
-    
+     
+and (|Annotated_rhs|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   Symbol.Yield _ :: _ -> match stream with | YieldStatement(s, r) -> s, r | _ -> match stream with | StarExpressions(s, r) -> s, r 
+    |   _ -> match stream with | StarExpressions(s, r) -> s, r
+     
 and (|TypeAliasStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
     |   _ ->    Option.None
