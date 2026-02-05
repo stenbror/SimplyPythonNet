@@ -184,6 +184,9 @@ type AST =
     | Call of uint * uint * AST
     | AssignmentStatement of uint * uint * AST * AST * AST
     | Block of uint * uint * AST list
+    | ElseBlock of uint * uint * AST
+    | ElifBlock of uint * uint * AST * AST
+    | IfBlock of uint * uint * AST * AST * AST list * AST
     
 type SymbolStream = Symbol list
 
@@ -2212,7 +2215,51 @@ and (|FunctionStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
     
 and (|IfStatement|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+    match stream with
+    |   Symbol.If (s, _) :: rest ->
+            let left, rest2 = match rest with |   NamedExpression(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.Colon _ :: rest4 ->
+                    let right, rest6 = match rest4 with |   Block(ast2, rest5) -> ast2, rest5
+                    let mutable elements = [ ]
+                    let mutable rest_final = rest6
+                    
+                    while   match rest_final with
+                            |   Symbol.Elif _ :: _ ->
+                                    let next, rest7 = match rest_final with |   ElifStatement(ast2, rest8) -> ast2, rest8 | _ -> failwith "Expecting elif statement"
+                                    elements <- next :: elements
+                                    rest_final <- rest7
+                                    true
+                            |   _ -> false
+                            do ()
+                    
+                    match rest_final with
+                    |   Symbol.Else _ :: rest7 ->
+                            let el, rest8 = match rest_final with | ElseStatement(ast2, rest5) -> ast2, rest5 | _ -> failwith "Expecting else block"
+                            rest_final <- rest8
+                            Some(AST.IfBlock(s, GetStartPosition rest_final, left, right, List.rev elements, el), rest_final)
+                    |   _ -> Some(AST.IfBlock(s, GetStartPosition rest_final, left, right, List.rev elements, AST.Empty), rest_final)
+            |   _ ->    failwith "Expecting ':' after 'if' statement"
+    |   _ ->    Option.None
+    
+and (|ElifStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Elif (s, _) :: rest ->
+            let left, rest2 = match rest with |   NamedExpression(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.Colon _ :: rest4 ->
+                    let right, rest6 = match rest4 with |   Block(ast2, rest5) -> ast2, rest5
+                    Some(AST.ElifBlock(s, GetStartPosition rest6, left, right), rest6)
+            |   _ ->    failwith "Expecting ':' after 'elif' statement"
+    |   _ ->    Option.None
+
+and (|ElseStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Else (s, _) :: Symbol.Colon _ :: rest ->
+            let body, rest2 = match rest with |   Block(ast, rest3) -> ast, rest3
+            Some(AST.ElseBlock(s, GetStartPosition rest2, body), rest2)
+    |   Symbol.Else _ :: rest -> failwith "Expecting ':' after 'else'"
+    | _ ->  Option.None
     
 and (|ClassStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
