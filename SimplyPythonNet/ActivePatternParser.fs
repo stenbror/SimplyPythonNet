@@ -183,7 +183,7 @@ type AST =
     | DotName of uint * uint * AST
     | Call of uint * uint * AST
     | AssignmentStatement of uint * uint * AST * AST * AST
-    | Block of uint * uint * AST list
+    | Block of uint * uint * AST
     | ElseBlock of uint * uint * AST
     | ElifBlock of uint * uint * AST * AST
     | IfBlock of uint * uint * AST * AST * AST list * AST
@@ -2186,21 +2186,10 @@ and (|NonLocalStatement|_|) (stream : SymbolStream) : NodeTree option =
 and (|Block|) (stream : SymbolStream) : NodeTree =
     match stream with
     |   Symbol.Newline(s) :: Symbol.Indent _ :: rest ->
-            let mutable elements = []
-            let mutable rest_final = rest
-            
-            while   match rest_final with
-                    |   CompoundStatement(ast, rest2) ->
-                            elements <- ast :: elements
-                            rest_final <- rest2
-                            true
-                    |   _ -> false
-                    do ()
-                    
-            if elements.Length = 0 then failwith "Expecting compound statement in block"
+            let elements, rest_final = match rest with |   StatementList(ast, rest2) -> ast, rest2
             
             match rest_final with
-            |   Symbol.Dedent _ :: rest2 -> AST.Block(s, GetStartPosition rest2, List.rev elements), rest2
+            |   Symbol.Dedent _ :: rest2 -> AST.Block(s, GetStartPosition rest2, elements), rest2
             |   _ -> failwith "Expecting dedent after block"
     |   _ ->    match stream with |   SimpleStatementList(ast, rest) -> ast, rest | _ -> failwith "Expecting statement(s) in block"
     
