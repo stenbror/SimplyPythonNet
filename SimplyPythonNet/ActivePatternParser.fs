@@ -91,6 +91,7 @@ type Symbol =
     | LeftCurlyBracket of uint * uint
     | RightCurlyBracket of uint * uint
     | Assign of uint * uint
+    | TypeComment of uint * uint * string
     
     
 type AST =
@@ -188,6 +189,9 @@ type AST =
     | ElifBlock of uint * uint * AST * AST
     | IfBlock of uint * uint * AST * AST * AST list * AST
     | WhileBlock of uint * uint * AST * AST * AST
+    | ForBlock of uint * uint * AST * AST * AST * AST * AST
+    | AsyncForBlock of uint * uint * AST * AST * AST * AST * AST
+    | TypeComment of uint * uint * string
     
 type SymbolStream = Symbol list
 
@@ -2263,7 +2267,48 @@ and (|WithStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
     
 and (|ForStatement|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+    match stream with
+    |   Symbol.Async (s, _) :: Symbol.For _ :: rest ->
+            let left, rest2 = match rest with |   StarTargets(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.In _ :: rest3 ->
+                    let right, rest4 = match rest3 with |   StarExpressions(ast2, rest5) -> ast2, rest5
+                    match rest4 with
+                    |   Symbol.Colon _ :: rest5 ->
+                            
+                            let tc, rest10 = match rest5 with
+                                             |  Symbol.TypeComment(s2, e2, t2) :: rest6 -> AST.TypeComment(s2, e2, t2), rest6
+                                             |  _ -> AST.Empty, rest5
+
+                            let next, rest6 = match rest10 with |   Block(ast2, rest7) -> ast2, rest7
+                            match rest6 with
+                            |   Symbol.Else _ :: _ ->
+                                    let el, rest7 = match rest6 with | ElseStatement(ast2, rest8) -> ast2, rest8 | _ -> failwith "Expecting else block"
+                                    Some(AST.AsyncForBlock(s, GetStartPosition rest7, left, right, tc, next, el), rest7)
+                            |   _ ->    Some(AST.AsyncForBlock(s, GetStartPosition rest6, left, right, tc, next, AST.Empty), rest6)   
+                    |   _ -> failwith "Expecting ':' after 'for' statement"    
+            |   _ ->    failwith "Expecting 'in' after 'for' statement"
+    |   Symbol.For (s, _) :: rest ->
+            let left, rest2 = match rest with |   StarTargets(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.In _ :: rest3 ->
+                    let right, rest4 = match rest3 with |   StarExpressions(ast2, rest5) -> ast2, rest5
+                    match rest4 with
+                    |   Symbol.Colon _ :: rest5 ->
+                            
+                            let tc, rest10 = match rest5 with
+                                             |  Symbol.TypeComment(s2, e2, t2) :: rest6 -> AST.TypeComment(s2, e2, t2), rest6
+                                             |  _ -> AST.Empty, rest5
+
+                            let next, rest6 = match rest10 with |   Block(ast2, rest7) -> ast2, rest7
+                            match rest6 with
+                            |   Symbol.Else _ :: _ ->
+                                    let el, rest7 = match rest6 with | ElseStatement(ast2, rest8) -> ast2, rest8 | _ -> failwith "Expecting else block"
+                                    Some(AST.ForBlock(s, GetStartPosition rest7, left, right, tc, next, el), rest7)
+                            |   _ ->    Some(AST.ForBlock(s, GetStartPosition rest6, left, right, tc, next, AST.Empty), rest6)   
+                    |   _ -> failwith "Expecting ':' after 'for' statement"    
+            |   _ ->    failwith "Expecting 'in' after 'for' statement"
+    |   _ ->    Option.None
     
 and (|TryStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
