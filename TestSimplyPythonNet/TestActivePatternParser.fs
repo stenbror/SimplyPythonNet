@@ -979,3 +979,10 @@ let ``Statement: if statement with one element`` () =
 let ``Statement: if/else statement with one element`` () =
     let result = "if a > 1: pass\nelse: pass" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.IfBlock(0u, 25u, AST.Greater(3u, 8u, AST.Name(3u, 4u, "a"), AST.Number(7u, 8u, "1")), AST.PassStatement(10u, 15u), [], AST.ElseBlock(15u, 25u, AST.PassStatement(21u, 25u))), [ ]), result)
+    
+[<Fact>]
+let ``Statement: if/elif/else statement with one element`` () =
+    let result = "if a > 1: pass\nelif a == 0: pass\nelse: pass" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equivalent((AST.IfBlock(0u, 43u, AST.Greater(3u, 8u, AST.Name(3u, 4u, "a"), AST.Number(7u, 8u, "1")), AST.PassStatement(10u, 15u),
+                              [ AST.ElifBlock(15u, 33u, AST.Equal(20u, 26u, AST.Name(20u, 21u, "a"), AST.Number(25u, 26u, "0")), AST.PassStatement(28u, 33u)) ],
+                              AST.ElseBlock(33u, 43u, AST.PassStatement(39u, 43u))), [ ]), result)
