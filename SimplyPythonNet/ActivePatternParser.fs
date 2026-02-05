@@ -187,6 +187,7 @@ type AST =
     | ElseBlock of uint * uint * AST
     | ElifBlock of uint * uint * AST * AST
     | IfBlock of uint * uint * AST * AST * AST list * AST
+    | WhileBlock of uint * uint * AST * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -2268,7 +2269,19 @@ and (|TryStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
     
 and (|WhileStatement|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+    match stream with
+    |   Symbol.While (s, _) :: rest ->
+            let left, rest2 = match rest with |   NamedExpression(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.Colon _ :: rest4 ->
+                    let right, rest6 = match rest4 with |   Block(ast2, rest5) -> ast2, rest5
+                    match rest6 with
+                    |   Symbol.Else _ :: rest7 ->
+                            let el, rest8 = match rest6 with | ElseStatement(ast2, rest5) -> ast2, rest5 | _ -> failwith "Expecting else block"
+                            Some(AST.WhileBlock(s, GetStartPosition rest8, left, right, el), rest8)
+                    |   _ -> Some(AST.WhileBlock(s, GetStartPosition rest6, left, right, AST.Empty), rest6)     
+            |   _ -> failwith "Expecting ':' after 'while' statement"        
+    |   _ ->    Option.None
     
 and (|MatchStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with

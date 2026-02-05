@@ -986,3 +986,13 @@ let ``Statement: if/elif/else statement with one element`` () =
     Assert.Equivalent((AST.IfBlock(0u, 43u, AST.Greater(3u, 8u, AST.Name(3u, 4u, "a"), AST.Number(7u, 8u, "1")), AST.PassStatement(10u, 15u),
                               [ AST.ElifBlock(15u, 33u, AST.Equal(20u, 26u, AST.Name(20u, 21u, "a"), AST.Number(25u, 26u, "0")), AST.PassStatement(28u, 33u)) ],
                               AST.ElseBlock(33u, 43u, AST.PassStatement(39u, 43u))), [ ]), result)
+    
+[<Fact>]
+let ``Statement: while statement with one element`` () =
+    let result = "while a > 1: pass" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.WhileBlock(0u, 17u, AST.Greater(6u, 11u, AST.Name(6u, 7u, "a"), AST.Number(10u, 11u, "1")), AST.PassStatement(13u, 17u), AST.Empty), [ ]), result)
+    
+[<Fact>]
+let ``Statement: while/else statement with one element`` () =
+    let result = "while a > 1: pass\nelse: pass" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.WhileBlock(0u, 28u, AST.Greater(6u, 11u, AST.Name(6u, 7u, "a"), AST.Number(10u, 11u, "1")), AST.PassStatement(13u, 18u), AST.ElseBlock(18u, 28u, AST.PassStatement(24u, 28u))), [ ]), result)
