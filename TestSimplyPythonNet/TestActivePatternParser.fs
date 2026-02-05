@@ -969,3 +969,8 @@ let ``Statement: return statement without element`` () =
 let ``Statement: return statement with one element`` () =
     let result = "return a" |> Seq.toList |> Tokenize |> ParseFromFile
     Assert.Equal((AST.ReturnStatement(0u, 8u, AST.Name(7u, 8u, "a") ), [ ]), result)
+    
+[<Fact>]
+let ``Statement: if statement with one element`` () =
+    let result = "if a > 1: pass" |> Seq.toList |> Tokenize |> ParseFromFile
+    Assert.Equal((AST.IfBlock(0u, 14u, AST.Greater(3u, 8u, AST.Name(3u, 4u, "a"), AST.Number(7u, 8u, "1")), AST.PassStatement(10u, 14u), [], AST.Empty), [ ]), result)

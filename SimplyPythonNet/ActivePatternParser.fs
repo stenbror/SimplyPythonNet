@@ -205,6 +205,8 @@ let GetStartPosition (stream : SymbolStream) : uint =
     | Symbol.Power(s, _) :: _ -> s
     | Symbol.Multiply(s, _) :: _ -> s
     | Symbol.EndOfFile s :: _ -> s
+    | Symbol.Greater(s, _) :: _ -> s
+    | Symbol.Colon(s, _) :: _ -> s
     | _ -> 0u
     
 let GetEndPosition (stream : SymbolStream) : uint =
