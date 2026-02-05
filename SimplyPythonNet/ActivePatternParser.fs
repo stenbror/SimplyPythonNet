@@ -182,6 +182,8 @@ type AST =
     | PrimaryExpression of uint * uint * AST list
     | DotName of uint * uint * AST
     | Call of uint * uint * AST
+    | AssignmentStatement of uint * uint * AST * AST * AST
+    | Block of uint * uint * AST list
     
 type SymbolStream = Symbol list
 
@@ -1678,8 +1680,13 @@ and  (|LambdaName|_|) (stream : SymbolStream) : NodeTree option =
     |   Symbol.Name(s, e, t) :: rest -> Some(AST.Name(s, e, t), rest)
     |   _ ->    Option.None
     
+(* Targets *)
+
+and  (|StarTargets|) (stream : SymbolStream) : NodeTree =
+    AST.Empty, stream
     
-    
+and  (|SingleTarget|) (stream : SymbolStream) : NodeTree =
+    AST.Empty, stream
     
 and  (|ArgumentList|) (stream : SymbolStream) : NodeTree =
     AST.Empty, stream
@@ -1908,7 +1915,26 @@ and (|SimpleStatement|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|AssignmentStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
-    |   _ ->    Option.None
+    |   Symbol.Name(s, e, t) :: Symbol.Colon _ :: rest ->
+            let left, rest2 = match rest with |   Expressions(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.Assign _ :: rest4 ->
+                    let right, rest5 = match rest4 with |   Annotated_rhs(ast2, rest6) -> ast2, rest6
+                    Some(AST.AssignmentStatement(s, GetStartPosition rest5, AST.Name(s, e, t), left, right), rest5)
+            |   _ ->    Some(AST.AssignmentStatement(s, GetStartPosition rest2, AST.Name(s, e, t), left, AST.Empty), rest2)
+    |   Symbol.LeftParenthesis (s, _) :: rest ->
+            let first, rest3 = match rest with |   SingleTarget(ast2, rest2) -> ast2, rest2
+            match rest3 with
+            | Symbol.RightParenthesis _ :: Symbol.Colon _ :: rest4 ->
+                    let left, rest6 = match rest with |   Expressions(ast, rest5) -> ast, rest5
+                    match rest6 with
+                    |   Symbol.Assign _ :: rest7 ->
+                            let right, rest9 = match rest7 with |   Annotated_rhs(ast2, rest8) -> ast2, rest8
+                            Some(AST.AssignmentStatement(s, GetStartPosition rest9, first, left, right), rest9)
+                    |   _ ->    Some(AST.AssignmentStatement(s, GetStartPosition rest6, first, left, AST.Empty), rest6)     
+            | _ -> failwith "Expecting ')' and ':' after tuple in assignment statement"
+    |   _ ->
+        Option.None // More to come here!
      
 and (|Annotated_rhs|) (stream : SymbolStream) : NodeTree =
     match stream with
@@ -2148,6 +2174,27 @@ and (|NonLocalStatement|_|) (stream : SymbolStream) : NodeTree option =
             |   _ -> failwith "Expecting variable name in nonlocal statement"
             Some(AST.NonlocalStatement(s, GetStartPosition rest_final, List.rev elements), rest_final)
     |   _ ->    Option.None
+    
+and (|Block|) (stream : SymbolStream) : NodeTree =
+    match stream with
+    |   Symbol.Newline(s) :: Symbol.Indent _ :: rest ->
+            let mutable elements = []
+            let mutable rest_final = rest
+            
+            while   match rest_final with
+                    |   CompoundStatement(ast, rest2) ->
+                            elements <- ast :: elements
+                            rest_final <- rest2
+                            true
+                    |   _ -> false
+                    do ()
+                    
+            if elements.Length = 0 then failwith "Expecting compound statement in block"
+            
+            match rest_final with
+            |   Symbol.Dedent _ :: rest2 -> AST.Block(s, GetStartPosition rest2, List.rev elements), rest2
+            |   _ -> failwith "Expecting dedent after block"
+    |   _ ->    match stream with |   SimpleStatementList(ast, rest) -> ast, rest | _ -> failwith "Expecting statement(s) in block"
     
 and (|CompoundStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
