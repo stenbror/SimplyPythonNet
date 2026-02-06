@@ -192,6 +192,9 @@ type AST =
     | ForBlock of uint * uint * AST * AST * AST * AST * AST
     | AsyncForBlock of uint * uint * AST * AST * AST * AST * AST
     | TypeComment of uint * uint * string
+    | WithItem of uint * uint * AST * AST
+    | WithStatement of uint * uint * AST list * AST * AST
+    | AsyncWithStatement of uint * uint * AST list * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -1785,7 +1788,7 @@ and (|ForIfClauseList|_|) (stream : SymbolStream) : NodeTree option =
 
 and (|StarTargetsList|_|) (stream : SymbolStream) : NodeTree option =
     Some(AST.Empty, stream)
-    
+        
 (* Del targets pattern *)
     
 and (|DelTargetList|) (stream : SymbolStream) : NodeTree =
@@ -2264,7 +2267,128 @@ and (|ClassStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
     
 and (|WithStatement|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+    let mutable elements = []
+    let mutable rest_final = stream
+    match rest_final with
+    |   Symbol.Async (s, _) :: Symbol.With _ :: Symbol.LeftParenthesis _ :: rest ->
+            let el, rest2 = match rest with |   WithItemStatement(ast, rest3) -> ast, rest3
+            elements <- el :: elements
+            rest_final <- rest2
+            
+            while   match rest_final with
+                    |   Symbol.Comma _ :: Symbol.RightParenthesis _ :: Symbol.Colon _ :: rest3 ->
+                            rest_final <- rest3
+                            false
+                    |   Symbol.Comma _ :: rest2 ->
+                        let el2, rest3 = match rest2 with |   WithItemStatement(ast2, rest4) -> ast2, rest4
+                        elements <- el2 :: elements
+                        rest_final <- rest3
+                        true
+                    |   Symbol.RightParenthesis _ :: Symbol.Colon _ :: rest2 ->
+                            rest_final <- rest2
+                            false
+                    |   _ -> failwith "Expecting ',' or ')' after 'with' item"
+                    do ()
+                    
+            let tc, rest5 =  match rest_final with
+                             |   Symbol.TypeComment(s2, _e2, t2) :: rest2 -> AST.TypeComment(s2, _e2, t2), rest2
+                             |   _ ->  AST.Empty, rest_final
+                            
+            let block, rest6 = match rest5 with |   Block(ast, rest3) -> ast, rest3
+            
+            Some(AST.AsyncWithStatement(s, GetStartPosition rest6, List.rev elements, tc, block), rest6)
+    |   Symbol.Async (s, _) :: Symbol.With _ :: rest ->
+            let el, rest2 = match rest with |   WithItemStatement(ast, rest3) -> ast, rest3
+            elements <- el :: elements
+            rest_final <- rest2
+            
+            while   match rest_final with
+                    |   Symbol.Comma _ :: Symbol.Colon _ :: rest3 ->
+                            rest_final <- rest3
+                            false
+                    |   Symbol.Comma _ :: rest2 ->
+                        let el2, rest3 = match rest2 with |   WithItemStatement(ast2, rest4) -> ast2, rest4
+                        elements <- el2 :: elements
+                        rest_final <- rest3
+                        true
+                    |   Symbol.Colon _ :: rest2 ->
+                            rest_final <- rest2
+                            false
+                    |   _ -> failwith "Expecting ',' or ':' after 'with' item"
+                    do ()
+                    
+            let tc, rest5 =  match rest_final with
+                             |   Symbol.TypeComment(s2, _e2, t2) :: rest2 -> AST.TypeComment(s2, _e2, t2), rest2
+                             |   _ ->  AST.Empty, rest_final
+                            
+            let block, rest6 = match rest5 with |   Block(ast, rest3) -> ast, rest3
+        
+            Some(AST.AsyncWithStatement(s, GetStartPosition rest_final, List.rev elements, tc, AST.Empty), rest_final)
+    |   Symbol.With (s, _) :: Symbol.LeftParenthesis _ :: rest ->
+            let el, rest2 = match rest with |   WithItemStatement(ast, rest3) -> ast, rest3
+            elements <- el :: elements
+            rest_final <- rest2
+            
+            while   match rest_final with
+                    |   Symbol.Comma _ :: Symbol.RightParenthesis _ :: Symbol.Colon _ :: rest3 ->
+                            rest_final <- rest3
+                            false
+                    |   Symbol.Comma _ :: rest2 ->
+                        let el2, rest3 = match rest2 with |   WithItemStatement(ast2, rest4) -> ast2, rest4
+                        elements <- el2 :: elements
+                        rest_final <- rest3
+                        true
+                    |   Symbol.RightParenthesis _ :: Symbol.Colon _ :: rest2 ->
+                            rest_final <- rest2
+                            false
+                    |   _ -> failwith "Expecting ',' or ')' after 'with' item"
+                    do ()
+                    
+            let tc, rest5 =  match rest_final with
+                             |   Symbol.TypeComment(s2, _e2, t2) :: rest2 -> AST.TypeComment(s2, _e2, t2), rest2
+                             |   _ ->  AST.Empty, rest_final
+                            
+            let block, rest6 = match rest5 with |   Block(ast, rest3) -> ast, rest3
+            
+            Some(AST.WithStatement(s, GetStartPosition rest_final, List.rev elements, tc, AST.Empty), rest_final)
+    |   Symbol.With (s, _) :: rest ->
+            let el, rest2 = match rest with |   WithItemStatement(ast, rest3) -> ast, rest3
+            elements <- el :: elements
+            rest_final <- rest2
+            
+            while   match rest_final with
+                    |   Symbol.Comma _ :: Symbol.Colon _ :: rest3 ->
+                            rest_final <- rest3
+                            false
+                    |   Symbol.Comma _ :: rest2 ->
+                        let el2, rest3 = match rest2 with |   WithItemStatement(ast2, rest4) -> ast2, rest4
+                        elements <- el2 :: elements
+                        rest_final <- rest3
+                        true
+                    |   Symbol.Colon _ :: rest2 ->
+                            rest_final <- rest2
+                            false
+                    |   _ -> failwith "Expecting ',' or ':' after 'with' item"
+                    do ()
+                    
+            let tc, rest5 =  match rest_final with
+                             |   Symbol.TypeComment(s2, _e2, t2) :: rest2 -> AST.TypeComment(s2, _e2, t2), rest2
+                             |   _ ->  AST.Empty, rest_final
+                            
+            let block, rest6 = match rest5 with |   Block(ast, rest3) -> ast, rest3
+            
+            Some(AST.WithStatement(s, GetStartPosition rest_final, List.rev elements, tc, AST.Empty), rest_final)
+    |   _ ->    Option.None
+
+and (|WithItemStatement|) (stream : SymbolStream) : NodeTree =
+    let s = GetStartPosition stream
+    match stream with
+    |   Expression(ast, rest) -> 
+            match rest with
+            |   Symbol.As _ :: rest2 ->
+                    let right, rest3 = match rest2 with |   StarTargetsList(ast2, rest4) -> ast2, rest4 | _ -> failwith "Expecting star targets list after 'as'"
+                    AST.WithItem(s, GetStartPosition rest3, ast, right), rest3
+            |   _ -> AST.WithItem(s, GetStartPosition rest, ast, AST.Empty), rest
     
 and (|ForStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
