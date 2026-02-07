@@ -2442,6 +2442,23 @@ and (|TryStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
     
 and (|Except|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Except (s, _) :: Symbol.Colon _ :: rest ->
+            let right, rest2 = match rest with |   Block(ast, rest3) -> ast, rest3
+            Some(AST.ExceptClause(s, GetStartPosition rest2, right, AST.Empty, AST.Empty), rest2)
+    |   Symbol.Except (s, _) :: rest ->
+            let right, rest2 = match rest with |   Block(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.As _ :: Symbol.Name(s2, e2, t2) :: Symbol.Colon _ ::rest3 ->
+                    let right2, rest4 = match rest3 with |   Block(ast2, rest5) -> ast2, rest5
+                    Some(AST.ExceptClause(s, GetStartPosition rest4, right, AST.Name(s2, e2, t2), right2), rest4)
+            |   Symbol.Colon _ :: rest3 ->
+                    let right2, rest4 = match rest3 with |   Block(ast2, rest5) -> ast2, rest5
+                    Some(AST.ExceptClause(s, GetStartPosition rest4, right, AST.Empty, right2), rest4)
+            |   _ -> failwith "Expecting ':' or 'as' after 'except' clause"
+    |   _ -> Option.None
+    
+and (|StarExcept|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
     
 and (|FinallyBlock|_|) (stream : SymbolStream) : NodeTree option =
