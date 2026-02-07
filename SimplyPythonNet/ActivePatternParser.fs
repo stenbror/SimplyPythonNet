@@ -195,6 +195,10 @@ type AST =
     | WithItem of uint * uint * AST * AST
     | WithStatement of uint * uint * AST list * AST * AST
     | AsyncWithStatement of uint * uint * AST list * AST * AST
+    | FinallyBlock of uint * uint * AST
+    | ExceptClause of uint * uint * AST * AST * AST
+    | StarExceptClause of uint * uint * AST * AST
+    | TryBlock of uint * uint * AST * AST list * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -2436,6 +2440,16 @@ and (|ForStatement|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|TryStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
+    
+and (|Except|_|) (stream : SymbolStream) : NodeTree option =
+    Option.None
+    
+and (|FinallyBlock|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Finally (s, _) :: Symbol.Colon _  :: rest ->
+            let right, rest2 = match rest with |   Block(ast, rest3) -> ast, rest3
+            Some(AST.FinallyBlock(s, GetStartPosition rest2, right), rest2)
+    |   _ ->    Option.None
     
 and (|WhileStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
