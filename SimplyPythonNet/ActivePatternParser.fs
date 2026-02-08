@@ -197,8 +197,10 @@ type AST =
     | AsyncWithStatement of uint * uint * AST list * AST * AST
     | FinallyBlock of uint * uint * AST
     | ExceptClause of uint * uint * AST * AST * AST
-    | StarExceptClause of uint * uint * AST * AST
+    | StarExceptClause of uint * uint * AST * AST * AST
     | TryBlock of uint * uint * AST * AST list * AST * AST
+    | ExceptionListClause of uint * uint * AST list * AST
+    | StarExceptionListClause of uint * uint * AST list * AST
     
 type SymbolStream = Symbol list
 
@@ -2447,7 +2449,7 @@ and (|Except|_|) (stream : SymbolStream) : NodeTree option =
             let right, rest2 = match rest with |   Block(ast, rest3) -> ast, rest3
             Some(AST.ExceptClause(s, GetStartPosition rest2, right, AST.Empty, AST.Empty), rest2)
     |   Symbol.Except (s, _) :: rest ->
-            let right, rest2 = match rest with |   Block(ast, rest3) -> ast, rest3
+            let right, rest2 = match rest with |   Expression(ast, rest3) -> ast, rest3
             match rest2 with
             |   Symbol.As _ :: Symbol.Name(s2, e2, t2) :: Symbol.Colon _ ::rest3 ->
                     let right2, rest4 = match rest3 with |   Block(ast2, rest5) -> ast2, rest5
@@ -2455,11 +2457,52 @@ and (|Except|_|) (stream : SymbolStream) : NodeTree option =
             |   Symbol.Colon _ :: rest3 ->
                     let right2, rest4 = match rest3 with |   Block(ast2, rest5) -> ast2, rest5
                     Some(AST.ExceptClause(s, GetStartPosition rest4, right, AST.Empty, right2), rest4)
+            |   Symbol.Comma _ :: _ ->
+                    let mutable elements = [ right ]
+                    let mutable rest_final = rest2
+                    
+                    while   match rest_final with
+                            |   Symbol.Comma _ :: rest3 ->
+                                    let right, rest2 = match rest_final with |   Expression(ast, rest3) -> ast, rest3
+                                    elements <- right :: elements
+                                    rest_final <- rest2
+                                    true
+                            |   _ -> false
+                            do ()
+                
+                    let right2, rest4 = match rest_final with |   Block(ast2, rest5) -> ast2, rest5
+                    Some(AST.ExceptionListClause(s, GetStartPosition rest_final, List.rev elements, right2), rest4)
             |   _ -> failwith "Expecting ':' or 'as' after 'except' clause"
     |   _ -> Option.None
     
 and (|StarExcept|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+   match stream with
+    |   Symbol.Except (s, _) :: Symbol.Multiply _ :: rest ->
+            let right, rest2 = match rest with |   Expression(ast, rest3) -> ast, rest3
+            match rest2 with
+            |   Symbol.As _ :: Symbol.Name(s2, e2, t2) :: Symbol.Colon _ ::rest3 ->
+                    let right2, rest4 = match rest3 with |   Block(ast2, rest5) -> ast2, rest5
+                    Some(AST.StarExceptClause(s, GetStartPosition rest4, right, AST.Name(s2, e2, t2), right2), rest4)
+            |   Symbol.Colon _ :: rest3 ->
+                    let right2, rest4 = match rest3 with |   Block(ast2, rest5) -> ast2, rest5
+                    Some(AST.StarExceptClause(s, GetStartPosition rest4, right, AST.Empty, right2), rest4)
+            |   Symbol.Comma _ :: _ ->
+                    let mutable elements = [ right ]
+                    let mutable rest_final = rest2
+                    
+                    while   match rest_final with
+                            |   Symbol.Comma _ :: rest3 ->
+                                    let right, rest2 = match rest_final with |   Expression(ast, rest3) -> ast, rest3
+                                    elements <- right :: elements
+                                    rest_final <- rest2
+                                    true
+                            |   _ -> false
+                            do ()
+                
+                    let right2, rest4 = match rest_final with |   Block(ast2, rest5) -> ast2, rest5
+                    Some(AST.StarExceptionListClause(s, GetStartPosition rest_final, List.rev elements, right2), rest4)
+            |   _ -> failwith "Expecting ':' or 'as' after 'except' clause"
+    |   _ -> Option.None
     
 and (|FinallyBlock|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
