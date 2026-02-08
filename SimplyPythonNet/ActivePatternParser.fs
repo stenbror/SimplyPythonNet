@@ -2441,7 +2441,46 @@ and (|ForStatement|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|TryStatement|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+    let s = GetStartPosition stream
+    match stream with
+    |   Symbol.Try _ :: Symbol.Colon _ :: rest ->
+            let left, rest2 = match rest with |   Block(ast, rest3) -> ast, rest3
+            
+            match rest2 with
+            |   FinallyBlock(ast2, rest3) -> Some(AST.TryBlock(s, GetStartPosition rest3, left, [], AST.Empty, ast2), rest3)
+            |   Symbol.Except _ :: Symbol.Multiply _ :: _ ->
+                    let mutable elements = [ ]
+                    let mutable rest_final = rest2
+                    
+                    while   match rest_final with
+                            | StarExcept(ast2, rest3) ->
+                                elements <- ast2 :: elements
+                                rest_final <- rest3
+                                true
+                            | _ -> false
+                            do ()
+                            
+                    let el, rest4 = match rest_final with | ElseStatement(ast2, rest3) -> ast2, rest3 | _ -> AST.Empty, rest_final
+                    let fin, rest5 = match rest4 with | FinallyBlock(ast2, rest3) -> ast2, rest3 | _ -> AST.Empty, rest4
+                    Some(AST.TryBlock(s, GetStartPosition rest5, left, List.rev elements, el, fin), rest5)
+            |   Symbol.Except _ :: rest2 ->
+                    let mutable elements = [ ]
+                    let mutable rest_final = rest2
+                    
+                    while   match rest_final with
+                            | Except(ast2, rest3) ->
+                                elements <- ast2 :: elements
+                                rest_final <- rest3
+                                true
+                            | _ -> false
+                            do ()
+                            
+                    let el, rest4 = match rest_final with | ElseStatement(ast2, rest3) -> ast2, rest3 | _ -> AST.Empty, rest_final
+                    let fin, rest5 = match rest4 with | FinallyBlock(ast2, rest3) -> ast2, rest3 | _ -> AST.Empty, rest4
+                    Some(AST.TryBlock(s, GetStartPosition rest5, left, List.rev elements, el, fin), rest5)
+            |   _ ->    Option.None
+    |   Symbol.Try _ :: rest -> failwith "Expecting ':' after 'try' statement"
+    |   _ ->    Option.None
     
 and (|Except|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
