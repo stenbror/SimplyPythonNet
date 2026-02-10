@@ -202,6 +202,7 @@ type AST =
     | ExceptionListClause of uint * uint * AST list * AST
     | StarExceptionListClause of uint * uint * AST list * AST
     | Decorators of uint * uint * AST list
+    | ClassDefinition of uint * uint * AST * AST * AST * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -2291,6 +2292,16 @@ and (|Decorators|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|ClassStatement|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Matrices _ :: _ ->   match stream with |   Decorators(ast, rest) ->
+                                                            match rest, ast with
+                                                            |   ClassRaw(node, rest2) -> Some(node, rest2)
+                                                            |   _ ->    Option.None
+                                                      | _ -> Option.None
+    |   Symbol.Class _ :: _ ->   match stream, AST.Empty with |   ClassRaw(ast, rest) -> Some(ast, rest) | _ -> Option.None
+    |   _ ->    Option.None
+    
+and (|ClassRaw|_|) (stream : SymbolStream, decorators: AST) : NodeTree option =
     Option.None
     
 and (|WithStatement|_|) (stream : SymbolStream) : NodeTree option =
