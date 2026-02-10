@@ -201,6 +201,7 @@ type AST =
     | TryBlock of uint * uint * AST * AST list * AST * AST
     | ExceptionListClause of uint * uint * AST list * AST
     | StarExceptionListClause of uint * uint * AST list * AST
+    | Decorators of uint * uint * AST list
     
 type SymbolStream = Symbol list
 
@@ -2268,6 +2269,26 @@ and (|ElseStatement|_|) (stream : SymbolStream) : NodeTree option =
             Some(AST.ElseBlock(s, GetStartPosition rest2, body), rest2)
     |   Symbol.Else _ :: rest -> failwith "Expecting ':' after 'else'"
     | _ ->  Option.None
+    
+and (|Decorators|_|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.Matrices (s, _) :: _ ->
+            let mutable elements = []
+            let mutable rest_final = stream
+            
+            while   match rest_final with
+                    | Symbol.Matrices (s2, _) :: rest2 ->
+                        let right, rest3 = match rest2 with |   NamedExpression(ast, rest4) -> ast, rest4
+                        elements <- right :: elements
+                        rest_final <- rest3
+                        match rest_final with
+                        |   Symbol.Newline _ :: _ -> true
+                        |   _ -> failwith "Expecting newline after decorator!"
+                    | _ -> false
+                do ()
+                
+            Some(AST.Decorators(s, GetStartPosition rest_final, List.rev elements), rest_final)
+    |   _ ->    Option.None
     
 and (|ClassStatement|_|) (stream : SymbolStream) : NodeTree option =
     Option.None
