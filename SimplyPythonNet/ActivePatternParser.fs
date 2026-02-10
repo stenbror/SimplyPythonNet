@@ -1859,6 +1859,14 @@ and (|DelTargetAtom|) (stream : SymbolStream) : NodeTree =
             |   Symbol.RightParenthesis _ :: rest3 -> AST.DelListTarget(s, GetStartPosition rest3, right), rest3
             |   _ -> failwith "Expecting ')' after tuple in del target"
     |   _ -> failwith "Expecting variable name in del target"
+    
+ (* Type parameter declaration *)
+
+and (|TypeParams|) (stream : SymbolStream) : NodeTree option =
+    match stream with
+    |   Symbol.LeftSquareBracket _ :: rest ->
+            Some(AST.Empty, stream) // Fix Later!
+    |   _   ->  Option.None
 
 
 (* Statement patterns *)
@@ -2302,7 +2310,28 @@ and (|ClassStatement|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|ClassRaw|_|) (stream : SymbolStream, decorators: AST) : NodeTree option =
-    Option.None
+    match stream with
+    |   Symbol.Class (s, _) :: Symbol.Name(s2, e, t) :: rest ->
+            let mutable rest_final = rest
+            
+            let tp, rest2 = match rest with |   TypeParams(Some(ast, rest3)) -> ast, rest3 | _ -> AST.Empty, rest
+
+            let arg, rest7 = match rest2 with
+                             |   Symbol.LeftParenthesis _ :: rest3 ->
+                                        match rest3 with
+                                        |   Symbol.RightParenthesis _ :: rest5 -> AST.Empty, rest5
+                                        |   _ ->
+                                                let righ2 , rest6 = match rest3 with |   ArgumentList(ast, rest5) -> ast, rest5
+                                                match rest6 with
+                                                |   Symbol.RightParenthesis _ :: rest7 -> righ2, rest7
+                                                |   _ -> failwith "Expecting ')' after arguments in class definition"
+                             |   _ ->    AST.Empty, rest_final
+                             
+            match rest7 with |   Symbol.Colon _ :: rest2 -> rest_final <- rest2 | _ -> failwith "Expecting ':' after class name"
+            let block, rest8 = match rest_final with |   Block(ast, rest7) -> ast, rest7        
+
+            Some(AST.ClassDefinition(s, GetStartPosition rest8, decorators, AST.Name(s2, e, t), tp, arg, block), rest8)
+    |   _   ->  Option.None
     
 and (|WithStatement|_|) (stream : SymbolStream) : NodeTree option =
     let mutable elements = []
