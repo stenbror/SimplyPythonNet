@@ -175,10 +175,10 @@ type AST =
     | DottedName of uint * uint * AST list
     | DottedAsName of uint * uint * AST * AST
     | DottedAsNameList of uint * uint * AST list
-    | ImportName of uint * uint * AST
+    | ImportName of uint * uint * AST * bool
     | ImportFromAsName of uint * uint * AST * AST
     | ImportFromAsNameList of uint * uint * AST list
-    | ImportFrom of uint * uint * uint * AST * AST
+    | ImportFrom of uint * uint * uint * AST * AST * bool
     | ImportFromTargetList of uint * uint * AST list
     | PrimaryExpression of uint * uint * AST list
     | DotName of uint * uint * AST
@@ -1929,11 +1929,11 @@ and (|SimpleStatementList|_|) (stream : SymbolStream) : NodeTree option =
     
 and (|SimpleStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
+    |   ImportStatement(ast, rest) -> Some(ast, rest)
     |   AssignmentStatement(ast, rest) -> Some(ast, rest)
     |   TypeAliasStatement(ast, rest) -> Some(ast, rest)
     |   StarExpression(ast, rest) -> Some(ast, rest)
     |   ReturnStatement(ast, rest) -> Some(ast, rest)
-    |   ImportStatement(ast, rest) -> Some(ast, rest)
     |   RaiseStatement(ast, rest) -> Some(ast, rest)
     |   PassStatement(ast, rest) -> Some(ast, rest)
     |   DelStatement(ast, rest) -> Some(ast, rest)
@@ -1992,17 +1992,25 @@ and (|ReturnStatement|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|ImportStatement|_|) (stream : SymbolStream) : NodeTree option =
-    match stream with
+    match stream, false with
+    |   Symbol.Name(_, _ , "lazy") :: Symbol.Import _ :: _, _ ->
+            match (stream.Tail, true) with
+            |   ImportName(ast, rest) -> Some(ast, rest)
+            |   _ -> Option.None
+    |   Symbol.Name(_, _, "lazy") :: Symbol.From _ :: _ , _ ->
+            match (stream.Tail, true) with
+            |   ImportFrom(ast, rest) -> Some(ast, rest)
+            |   _ -> Option.None
     |   ImportName(ast, rest) -> Some(ast, rest)
     |   ImportFrom(ast, rest) -> Some(ast, rest)
     |   _ ->    Option.None
     
-and (|ImportName|_|) (stream : SymbolStream) : NodeTree option =
+and (|ImportName|_|) (stream : SymbolStream, _lazy: bool) : NodeTree option =
     let s = GetStartPosition stream
     match stream with
     |   Symbol.Import _ :: rest ->
             let right, rest2 = match rest with |   DottedAsNameList(ast, rest3) -> ast, rest3
-            Some(AST.ImportName(s, GetStartPosition rest2, right), rest2)
+            Some(AST.ImportName(s, GetStartPosition rest2, right, _lazy), rest2)
     |   _ ->    Option.None
             
 and (|DottedAsNameList|) (stream : SymbolStream) : NodeTree =
@@ -2049,7 +2057,7 @@ and (|DottedName|) (stream : SymbolStream) : NodeTree =
                 | _ -> AST.DottedName(s, GetStartPosition rest_final, List.rev elements), rest_final
     |   _ ->    failwith "Expecting variable name in dotted name"
     
-and (|ImportFrom|_|) (stream : SymbolStream) : NodeTree option =
+and (|ImportFrom|_|) (stream : SymbolStream, _lazy: bool) : NodeTree option =
     let s = GetStartPosition stream
     match stream with
     |   Symbol.From _ :: rest ->
@@ -2067,7 +2075,7 @@ and (|ImportFrom|_|) (stream : SymbolStream) : NodeTree option =
             |   Symbol.Import _ :: rest , _ ->
                     let right, rest2 = match rest with |   ImportFromTargets(ast, rest3) -> ast, rest3
                     rest_final <- rest2
-                    Some(AST.ImportFrom(s, GetStartPosition rest_final, dots, AST.Empty, right), rest_final)
+                    Some(AST.ImportFrom(s, GetStartPosition rest_final, dots, AST.Empty, right, _lazy), rest_final)
             |   _ ->
                 let left, rest2 = match rest_final with |   DottedName(s, rest3) -> s, rest3
                 rest_final <- rest2
@@ -2075,7 +2083,7 @@ and (|ImportFrom|_|) (stream : SymbolStream) : NodeTree option =
                 |   Symbol.Import _ :: rest3 ->
                         let right, rest4 = match rest3 with |   ImportFromTargets(ast, rest5) -> ast, rest5
                         rest_final <- rest4
-                        Some(AST.ImportFrom( s, GetStartPosition rest_final, dots, left, right), rest_final)
+                        Some(AST.ImportFrom( s, GetStartPosition rest_final, dots, left, right, _lazy), rest_final)
                 | _ -> failwith "Expecting 'import' after dotted name in 'import from'"           
     |   _ ->    Option.None
     
