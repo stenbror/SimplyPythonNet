@@ -2238,7 +2238,17 @@ and (|CompoundStatement|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|FunctionStatement|_|) (stream : SymbolStream) : NodeTree option =
-    Option.None
+    match stream with
+    |   Symbol.Matrices _ :: _ ->   match stream with |   Decorators(ast, rest) ->
+                                                            match rest, ast with
+                                                            |   FunctionRaw(node, rest2) -> Some(node, rest2)
+                                                            |   _ ->    Option.None
+                                                      | _ -> Option.None
+    |   Symbol.Def _ :: _ ->   match stream, AST.Empty with |   FunctionRaw(ast, rest) -> Some(ast, rest) | _ -> Option.None
+    |   _ ->    Option.None
+    
+and (|FunctionRaw|_|) (stream : SymbolStream, decorators: AST) : NodeTree option =
+    Some(AST.Empty, stream)
     
 and (|IfStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
