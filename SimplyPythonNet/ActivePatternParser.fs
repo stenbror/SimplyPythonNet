@@ -2248,7 +2248,15 @@ and (|FunctionStatement|_|) (stream : SymbolStream) : NodeTree option =
     |   _ ->    Option.None
     
 and (|FunctionRaw|_|) (stream : SymbolStream, decorators: AST) : NodeTree option =
-    Some(AST.Empty, stream)
+    match stream with
+    |   Symbol.Async(s, _) :: Symbol.Def _ :: rest ->
+                match rest, decorators, s, true with | FunctionBody(ast, rest2) -> Some(ast, rest2)
+    |   Symbol.Def(s, _) :: rest ->
+                match rest, decorators, s, false with | FunctionBody(ast, rest2) -> Some(ast, rest2)
+    |   _ ->    Some(AST.Empty, stream)
+    
+and (|FunctionBody|) (stream: SymbolStream, decorators: AST, start: uint, async: bool) : NodeTree =
+    AST.Empty, stream
     
 and (|IfStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
