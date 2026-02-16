@@ -203,6 +203,8 @@ type AST =
     | StarExceptionListClause of uint * uint * AST list * AST
     | Decorators of uint * uint * AST list
     | ClassDefinition of uint * uint * AST * AST * AST * AST * AST
+    | AsyncFunction of uint * uint * AST * AST * AST * AST * AST * AST * AST
+    | Function of uint * uint * AST * AST * AST * AST * AST * AST * AST
     
 type SymbolStream = Symbol list
 
@@ -2256,7 +2258,10 @@ and (|FunctionRaw|_|) (stream : SymbolStream, decorators: AST) : NodeTree option
     |   _ ->    Some(AST.Empty, stream)
     
 and (|FunctionBody|) (stream: SymbolStream, decorators: AST, start: uint, async: bool) : NodeTree =
-    AST.Empty, stream
+    match stream with
+    |   Symbol.Name(s2, e2, t2) :: rest ->
+            AST.Empty, stream
+    |   _ ->    failwith "Expecting function name!"
     
 and (|IfStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
