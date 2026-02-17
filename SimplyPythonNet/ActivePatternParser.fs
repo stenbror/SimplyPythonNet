@@ -1864,7 +1864,7 @@ and (|DelTargetAtom|) (stream : SymbolStream) : NodeTree =
     
  (* Type parameter declaration *)
 
-and (|TypeParams|) (stream : SymbolStream) : NodeTree option =
+and (|TypeParams|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
     |   Symbol.LeftSquareBracket _ :: rest ->
             Some(AST.Empty, stream) // Fix Later!
@@ -2260,8 +2260,34 @@ and (|FunctionRaw|_|) (stream : SymbolStream, decorators: AST) : NodeTree option
 and (|FunctionBody|) (stream: SymbolStream, decorators: AST, start: uint, async: bool) : NodeTree =
     match stream with
     |   Symbol.Name(s2, e2, t2) :: rest ->
-            AST.Empty, stream
+            let tp, rest2 = match rest with | TypeParams(ast, restx) -> ast, restx | _ -> AST.Empty, rest (* Type params *)
+            
+            let par, rest3 = match rest2 with
+                             |  Symbol.LeftParenthesis _ :: restx ->
+                                    let right, restxx = match restx with | Parameters(ast, restxxx) -> ast, restxxx
+                                    match restxx with | Symbol.RightParenthesis _ :: resty -> right, restxx | _ -> failwith "Expecting ´)´ in function declaration!"
+                             |  _ -> failwith "Expecting ´(´ in function declaration!"
+            let ret, rest4 = match rest3 with
+                             | Symbol.Arrow _ :: restx ->
+                                    match restx with | Expression(ast, restxx) -> ast, restx
+                             | _ ->     AST.Empty, rest3
+                             
+            let rest5 = match rest4 with | Symbol.Colon _ :: restx -> restx | _ ->   failwith "Expecting ´:´in function declaration!"
+            
+            let tc, rest6 =  match rest5 with
+                             |   Symbol.TypeComment(s2, _e2, t2) :: restxy -> AST.TypeComment(s2, _e2, t2), restxy
+                             |   _ ->  AST.Empty, rest5
+                            
+            let block, rest7 = match rest6 with |   Block(ast, restxxy) -> ast, restxxy
+            
+            match async with
+            |   true    ->  AST.AsyncFunction(start, GetStartPosition rest7, decorators, AST.Name(s2, e2, t2), tp, par, ret, tc, block), rest7
+            |   _ ->    AST.Function(start, GetStartPosition rest7, decorators, AST.Name(s2, e2, t2), tp, par, ret, tc, block), rest7
+            
     |   _ ->    failwith "Expecting function name!"
+    
+and (|Parameters|) (stream: SymbolStream) : NodeTree =
+    AST.Empty, stream
     
 and (|IfStatement|_|) (stream : SymbolStream) : NodeTree option =
     match stream with
@@ -2345,7 +2371,7 @@ and (|ClassRaw|_|) (stream : SymbolStream, decorators: AST) : NodeTree option =
     |   Symbol.Class (s, _) :: Symbol.Name(s2, e, t) :: rest ->
             let mutable rest_final = rest
             
-            let tp, rest2 = match rest with |   TypeParams(Some(ast, rest3)) -> ast, rest3 | _ -> AST.Empty, rest
+            let tp, rest2 = match rest with |   TypeParams(ast, rest3) -> ast, rest3 | _ -> AST.Empty, rest
 
             let arg, rest7 = match rest2 with
                              |   Symbol.LeftParenthesis _ :: rest3 ->
